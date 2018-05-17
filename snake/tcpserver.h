@@ -6,6 +6,7 @@
 #include <QTcpServer>
 #include <QDataStream>
 #include <QByteArray>
+#include <QUdpSocket>
 
 enum class MessageType : unsigned char
 {
@@ -26,6 +27,7 @@ public:
 
     QTcpServer *server;
     QTcpSocket *client = NULL;
+    QUdpSocket *clientUdp = NULL;
     int count = 0;
 
     void connect();
@@ -36,6 +38,7 @@ public slots:
     void handleConnection();
     void sendDataToClient();
     void readyRead();
+    void processPendingDatagrams();
 private:
     QDataStream in;
     QDataStream out;

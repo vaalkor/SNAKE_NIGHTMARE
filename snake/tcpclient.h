@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTcpSocket>
+#include <QUdpSocket>
 #include <QDataStream>
 
 class tcpClient : public QObject
@@ -10,7 +11,8 @@ class tcpClient : public QObject
     Q_OBJECT
 public:
     explicit tcpClient(QObject *parent = nullptr);
-    QTcpSocket *tcpSocket;
+    //QTcpSocket *tcpSocket;
+    QUdpSocket *udpSocket;
     bool connected = false;
 
 signals:

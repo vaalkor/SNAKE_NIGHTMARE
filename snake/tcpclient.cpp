@@ -6,12 +6,13 @@
 //#include <QtNetwork/QHostAddress>
 tcpClient::tcpClient(QObject *parent) : QObject(parent)
 {
-    tcpSocket = new QTcpSocket(this);
+    //tcpSocket = new QTcpSocket(this);
+    udpSocket = new QUdpSocket(this);
 
-    QObject::connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    //QObject::connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
 
-    in.setDevice(tcpSocket);
-    in.setVersion(QDataStream::Qt_4_0);
+    //in.setDevice(tcpSocket);
+    //in.setVersion(QDataStream::Qt_4_0);
 
 }
 
@@ -31,13 +32,18 @@ void tcpClient::connect()
 void tcpClient::sendPosition(int x, int y)
 {
     qDebug() << "sending position mate x/y" << x << "/" << y;
-    QByteArray block;
+    /*QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_0);
 
     out << x << y;
 
-    tcpSocket->write(block);
+    tcpSocket->write(block);*/
+
+    QByteArray::number arr1(x);
+    arr1 += QByteArray::number(y);
+    udpSocket->writeDatagram(arr1.data(), arr1.size(), "192.168.0.118", 6666);
+
 }
 
 void tcpClient::readyRead()

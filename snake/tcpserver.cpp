@@ -8,6 +8,8 @@
 tcpServer::tcpServer(QObject *parent) : QObject(parent)
 {
     server = new QTcpServer(this);
+    clientUdp = new QUdpSocket(this);
+    clientUdp->bind(6666);
 
     QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
     //connect(tcpServer, &QTcpServer::newConnection, this, &tcpconnect::handleConnection);
@@ -20,6 +22,20 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
     else
         qDebug() << "Listening on port 1234, localhost mate";
 
+}
+
+void tcpServer::processPendingDatagrams()
+{
+    while (udpSocket->hasPendingDatagrams()) {
+        QByteArray datagram;
+        datagram.resize(udpSocket->pendingDatagramSize());
+        udpSocket->readDatagram(datagram.data(), datagram.size());
+        int x,y;
+        QDataStream inblock(&datagram, QIODevice::ReadOnly);
+        inblock >> x;
+        inblock >> y;
+        qDebug() << x << "/" << y;
+    }
 }
 
 void tcpServer::handleConnection()
