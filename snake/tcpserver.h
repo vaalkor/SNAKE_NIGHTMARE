@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 #include <QDataStream>
+#include <QByteArray>
 
 enum class MessageType : unsigned char
 {
@@ -38,6 +39,7 @@ public slots:
 private:
     QDataStream in;
     QDataStream out;
+    QByteArray block;
 };
 
 #endif // TCPSERVER_H

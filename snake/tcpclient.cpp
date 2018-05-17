@@ -22,7 +22,7 @@ void tcpClient::connect()
         qDebug() << "client connect slot triggered son...\n";
         std::cout << "client connect method called mate...\n";
         tcpSocket->abort();
-        tcpSocket->connectToHost(QHostAddress::LocalHost, 1234);
+        tcpSocket->connectToHost("192.168.0.118", 1234);
         connected  = true;
     }
 
