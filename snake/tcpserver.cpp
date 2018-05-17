@@ -12,7 +12,7 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
     QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
     //connect(tcpServer, &QTcpServer::newConnection, this, &tcpconnect::handleConnection);
 
-    if (!server->listen(QHostAddress::LocalHost, 1234))
+    if (!server->listen(QHostAddress::Any, 904))
     {
         qDebug() << "could not listen on server mate..\n";
         //QMessageBox::critical(this, tr("Fortune Server"), tr("Unable to start the server: %1.").arg(tcpServer->errorString()));

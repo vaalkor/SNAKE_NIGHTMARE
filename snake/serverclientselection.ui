@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>369</width>
+    <height>107</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QPushButton" name="clientButtonClicked">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>120</y>
+     <x>20</x>
+     <y>50</y>
      <width>151</width>
-     <height>101</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
@@ -29,14 +29,24 @@
   <widget class="QPushButton" name="serverButtonClicked">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>230</y>
+     <x>200</x>
+     <y>50</y>
      <width>151</width>
-     <height>21</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
     <string>Server m8</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>331</width>
+     <height>22</height>
+    </rect>
    </property>
   </widget>
  </widget>
