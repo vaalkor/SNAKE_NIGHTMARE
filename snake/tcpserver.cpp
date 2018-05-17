@@ -12,7 +12,7 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
     clientUdp->bind(6666);
 
     QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
-    //connect(tcpServer, &QTcpServer::newConnection, this, &tcpconnect::handleConnection);
+    QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
 
     if (!server->listen(QHostAddress::Any, 6666))
     {
@@ -26,15 +26,17 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
 
 void tcpServer::processPendingDatagrams()
 {
-    while (udpSocket->hasPendingDatagrams()) {
+    while (clientUdp->hasPendingDatagrams()) {
         QByteArray datagram;
-        datagram.resize(udpSocket->pendingDatagramSize());
-        udpSocket->readDatagram(datagram.data(), datagram.size());
+        datagram.resize(clientUdp->pendingDatagramSize());
+        clientUdp->readDatagram(datagram.data(), datagram.size());
         int x,y;
         QDataStream inblock(&datagram, QIODevice::ReadOnly);
         inblock >> x;
         inblock >> y;
+        //inblock >> y;
         qDebug() << x << "/" << y;
+        emit drawPosition(x,y);
     }
 }
 

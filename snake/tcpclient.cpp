@@ -3,6 +3,7 @@
 #include <QTcpServer>
 #include <QtNetwork>
 #include <iostream>
+#include <QHostAddress>
 //#include <QtNetwork/QHostAddress>
 tcpClient::tcpClient(QObject *parent) : QObject(parent)
 {
@@ -18,14 +19,14 @@ tcpClient::tcpClient(QObject *parent) : QObject(parent)
 
 void tcpClient::connect()
 {
-    if(!connected)
+    /*if(!connected)
     {
         qDebug() << "client connect slot triggered son...\n";
         std::cout << "client connect method called mate...\n";
         tcpSocket->abort();
         tcpSocket->connectToHost("192.168.0.118", 1234);
         connected  = true;
-    }
+    }*/
 
 }
 
@@ -40,9 +41,12 @@ void tcpClient::sendPosition(int x, int y)
 
     tcpSocket->write(block);*/
 
-    QByteArray::number arr1(x);
-    arr1 += QByteArray::number(y);
-    udpSocket->writeDatagram(arr1.data(), arr1.size(), "192.168.0.118", 6666);
+    QByteArray buffer;
+    QDataStream stream(&buffer, QIODevice::WriteOnly);
+    stream << x;
+    stream << y;
+    qDebug() << "arr1size: " << buffer.size();
+    udpSocket->writeDatagram(buffer.data(), buffer.size(), QHostAddress("192.168.0.118"), 6666);
 
 }
 
