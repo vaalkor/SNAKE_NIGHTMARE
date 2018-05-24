@@ -84,15 +84,15 @@ void tcpServer::clientDisconnected()
 }
 
 void tcpServer::sendDataToClient()
-{
-    QByteArray block;
+{ //this was just for testing.. now its just useless...
+    /*QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_0);
 
     out << count;
     count++;
 
-    clientTcp->write(block);
+    clientTcp->write(block);*/
 }
 
 void tcpServer::readyRead()
@@ -101,48 +101,47 @@ void tcpServer::readyRead()
     qDebug() << "clientSocket address: " << clientSocket;
     qDebug() << "in readyread son";
 
-    while(clientTcp->bytesAvailable())
+    while(clientSocket->bytesAvailable())
     {
         qDebug() << "bytes available son!";
-        int dataSize = clientTcp->bytesAvailable();
+        int dataSize = clientSocket->bytesAvailable();
 
         QByteArray buffer;
-        buffer = clientTcp->read(dataSize);
+        buffer = clientSocket->read(dataSize);
 
-        while(buffer.size() < dataSize) // only part of the message has been received
+        /*while(buffer.size() < dataSize) // only part of the message has been received
         {
             clientTcp->waitForReadyRead(); // alternatively, store the buffer and wait for the next readyRead()
             buffer.append(clientTcp->read(dataSize - buffer.size())); // append the remaining bytes of the message
-        }
+        }*/
 
         QDataStream inblock(&buffer, QIODevice::ReadOnly);
-        int result;
-        inblock >> result;
-        qDebug() << "result: " << result;
 
-        //unsigned char mTypeChar;
-        //MessageType mType;
-        //inblock >> mTypeChar; //this is gypo as fuck mate.
-        //mType = static_cast<MessageType>(mTypeChar);
+        unsigned char mTypeChar;
+        MessageType mType;
+        inblock >> mTypeChar; //this is gypo as fuck mate.
+        mType = static_cast<MessageType>(mTypeChar);
 
-        /*switch(mType){
+        qDebug() << (unsigned int)mType;
+
+        switch(mType){
             case MessageType::PLAYER_CONNECTED :
-                std::cout << "player connected";
+                qDebug() << "player connected";
             case MessageType::PLAYER_DISCONNECTED :
-                std::cout << "player disconnected";
+                qDebug() << "player disconnected";
             case MessageType::POSITION_UPDATE :
-                std::cout << "player update";
+                qDebug() << "player update";
             case MessageType::BOMB_ACTIVATION :
-                std::cout << "bomb activation";
+                qDebug() << "bomb activation";
             case MessageType::PLAYER_DIED :
-                std::cout << "player died";
+                qDebug() << "player died";
             case MessageType::PLAYER_WON :
-                std::cout << "player won";
+                qDebug() << "player won";
             case MessageType::GAME_BEGIN :
-                std::cout << "game begun";
+                qDebug() << "game begun";
             case MessageType::TIMER_UPDATE :
-                std::cout << "timer update";
-        }*/
+                qDebug() << "timer update";
+        }
 
         //qDebug() << "x/y: " << x << "/" << y;
         //emit drawPosition(x,y);

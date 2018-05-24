@@ -60,8 +60,8 @@ void tcpClient::sendTcpMessage()
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_0);
 
-    //unsigned char message = qrand() % (unsigned int)MessageType::COUNT;
-    int message = 50;
+    unsigned char message = qrand() % (unsigned int)MessageType::COUNT;
+    //int message = 50;
     out << message;
 
     tcpSocket->write(block);

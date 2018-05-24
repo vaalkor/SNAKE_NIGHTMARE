@@ -30,7 +30,6 @@ public:
     explicit tcpServer(QObject *parent = nullptr);
 
     QTcpServer *server;
-    QTcpSocket *clientTcp = NULL;
     QUdpSocket *clientUdp = NULL;
     int count = 0;
     unsigned int clientIDCounter = 0;
