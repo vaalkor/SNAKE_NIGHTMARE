@@ -14,6 +14,8 @@ class ServerClientSelection : public QDialog
 public:
     explicit ServerClientSelection(QWidget *parent = 0);
     ~ServerClientSelection();
+    void focusInEvent(QFocusEvent *event);
+    void focusOutEvent(QFocusEvent *event);
 
 private slots:
 

@@ -28,6 +28,8 @@ public:
     explicit MainWindow(bool isServer_, QWidget *parent = 0);
 
     virtual void paintEvent(QPaintEvent *event);
+    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void closeEvent(QCloseEvent *event);
 
     bool isServer;
 
@@ -38,9 +40,14 @@ public:
     tcpServer *server;
     tcpClient *client;
 
+    virtual bool event(QEvent *e);
+
     QImage image;
     ~MainWindow();
+signals:
+    focusChanged(bool value);
 public slots:
+
 
 private:
     Ui::MainWindow *ui;

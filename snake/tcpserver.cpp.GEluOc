@@ -1,0 +1,113 @@
+#include "tcpserver.h"
+#include <QDataStream>
+#include <QMessageBox>
+#include <QTcpSocket>
+#include <iostream>
+#include <QAbstractSocket>
+
+tcpServer::tcpServer(QObject *parent) : QObject(parent)
+{
+    server = new QTcpServer(this);
+    clientUdp = new QUdpSocket(this);
+    clientUdp->bind(6666);
+
+    QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
+    QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
+
+    if (!server->listen(QHostAddress::Any, 6666))
+    {
+        qDebug() << "could not listen on server mate..\n";
+        //QMessageBox::critical(this, tr("Fortune Server"), tr("Unable to start the server: %1.").arg(tcpServer->errorString()));
+    }
+    else
+        qDebug() << "Listening on port 1234, localhost mate";
+
+}
+
+void tcpServer::processPendingDatagrams()
+{
+    while (clientUdp->hasPendingDatagrams()) {
+        QByteArray datagram;
+        datagram.resize(clientUdp->pendingDatagramSize());
+        clientUdp->readDatagram(datagram.data(), datagram.size());
+        int x,y;
+        QDataStream inblock(&datagram, QIODevice::ReadOnly);
+        inblock >> x;
+        inblock >> y;
+        //inblock >> y;
+        qDebug() << x << "/" << y;
+        emit drawPosition(x,y);
+    }
+}
+
+void tcpServer::handleConnection()
+{
+    qDebug() << "Here we go mate we are handling a fooking connection son\n";
+
+    while(server->hasPendingConnections())
+    {
+        QTcpSocket *tempClient = server->nextPendingConnection();
+        clients.push_back( tempClient );
+
+
+        tempClient->setSocketOption(QAbstractSocket::LowDelayOption,1);
+        in.setDevice(clientTcp);
+        in.setVersion(QDataStream::Qt_4_0);
+        QObject::connect(clientTcp, SIGNAL(disconnected()), clientTcp, SLOT(deleteLater()));
+        QObject::connect(clientTcp, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    }
+
+}
+
+void tcpServer::sendDataToClient()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_0);
+
+    out << count;
+    count++;
+
+    clientTcp->write(block);
+}
+
+void tcpServer::readyRead()
+{
+    qDebug() << "in readyread son";
+    while(clientTcp->bytesAvailable())
+    {
+        int dataSize = clientTcp->bytesAvailable();
+        int x,y;
+        //client->read((char*)&dataSize, sizeof(int));
+        QByteArray buffer;
+        buffer = clientTcp->read(dataSize);
+
+        /*while(buffer.size() < dataSize) // only part of the message has been received
+        {
+            client->waitForReadyRead(); // alternatively, store the buffer and wait for the next readyRead()
+            buffer.append(client->read(dataSize - buffer.size())); // append the remaining bytes of the message
+        }*/
+
+        QDataStream inblock(&buffer, QIODevice::ReadOnly);
+
+        inblock >> x;
+        inblock >> y;
+
+        qDebug() << "x/y: " << x << "/" << y;
+        emit drawPosition(x,y);
+    }
+
+
+
+    /*in.startTransaction();
+
+    int x,y;
+    in >> x;
+    in >> y;
+    qDebug() << "x/y: " << x << "/" << y;
+
+    //emit drawPosition(x,y);
+
+    if(!in.commitTransaction())
+        return;*/
+}

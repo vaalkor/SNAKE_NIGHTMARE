@@ -24,6 +24,8 @@ public:
     void drawSquare(int x, int y, QRgb color);
     void draw(bool endGame);
 
+    bool tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
+
 signals:
 
 public slots:

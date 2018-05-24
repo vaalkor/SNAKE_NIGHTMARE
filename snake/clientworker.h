@@ -25,9 +25,12 @@ public:
 
     bool isGameOver = false;
 
-    int appleX = 0;
-    int appleY = 0;
-    bool applePickedUp = false;
+    int xPos = 50;
+    int yPos = 50;
+
+    bool inFocus = true;
+
+    bool tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
 
     std::list<SnakePiece> list;
     bool checkCollisions();
@@ -42,6 +45,8 @@ signals:
 public slots:
     //void readyRead();
     void process();
+    void focusChanged(bool value);
+    void receivePosition(int x, int y);
 };
 
 #endif // CLIENTWORKER_H
