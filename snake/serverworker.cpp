@@ -12,9 +12,7 @@
 
 ServerWorker::ServerWorker(QObject *parent) : QObject(parent)
 {
-    //socket = new QUdpSocket(this);
-    //socket->bind(QHostAddress::LocalHost, 1234);
-    //connect(socket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    memset(tailArray, 0, sizeof(bool)*100*100);
 }
 
 
@@ -35,6 +33,11 @@ void ServerWorker::draw(bool endGame)
     else
     {
         w->image.fill( qRgb(0,0,0));
+        for(unsigned int i=0; i<100; i++)
+            for(unsigned int j=0; j<100; j++)
+                if(tailArray[i][j])
+                    drawSquare(i,j,qRgb(255,255,255));
+
         drawSquare(xPos, yPos, qRgb(255,255,255));
     }
 
@@ -44,13 +47,17 @@ void ServerWorker::draw(bool endGame)
 
 bool ServerWorker::checkCollisions()
 {
-    return false;
+    if( tailArray[xPos][yPos] )
+        return true;
+    else
+        return false;
 }
 
 void ServerWorker::drawPosition(int x, int y)
 {
     xPos = x;
     yPos = y;
+    tailArray[x][y] = true;
     draw(false);
 }
 

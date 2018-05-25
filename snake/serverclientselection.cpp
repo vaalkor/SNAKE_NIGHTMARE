@@ -29,3 +29,13 @@ void ServerClientSelection::on_serverButtonClicked_clicked()
     MainWindow *w = new MainWindow(true);
     w->show();
 }
+
+void ServerClientSelection::focusInEvent(QFocusEvent *event)
+{
+    qDebug() << "FocusInEvent called!";
+}
+void ServerClientSelection::focusOutEvent(QFocusEvent *event)
+{
+    qDebug() << "FocusOutEvent called!";
+}
+
