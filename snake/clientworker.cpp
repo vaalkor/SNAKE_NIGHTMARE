@@ -16,36 +16,6 @@ ClientWorker::ClientWorker(QObject *parent) : QObject(parent)
     memset(tailArray, 0, sizeof(bool)*100*100);
 }
 
-
-void ClientWorker::drawSquare(int x, int y, QRgb color)
-{
-    for(int i=x*5; i<x*5+5; i++)
-        for(int j=y*5; j<y*5+5; j++)
-            w->image.setPixel(i,j, color);
-
-    w->update();
-
-}
-
-void ClientWorker::draw(bool endGame)
-{
-    if(endGame)
-        w->image.fill( qRgb(255,0,0));
-    else
-    {
-        w->image.fill( qRgb(0,0,0));
-        for(unsigned int i=0; i<100; i++)
-            for(unsigned int j=0; j<100; j++)
-                if(tailArray[i][j])
-                    drawSquare(i,j,qRgb(255,255,255));
-
-        drawSquare(xPos, yPos, qRgb(255,255,255));
-    }
-
-    w->update();
-}
-
-
 bool ClientWorker::checkCollisions()
 {
     //NOT DONE YET MATE!
@@ -57,13 +27,6 @@ void ClientWorker::process()
 
     int xDir = 1;
     int yDir = 0;
-
-    unsigned int currentTime = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-
-    std::default_random_engine rd( currentTime );
-
-    std::mt19937 gen = std::mt19937(rd());
-    std::uniform_real_distribution<> dist = std::uniform_real_distribution<>(0.0, 1.0);
 
     while(1)
     {
@@ -114,7 +77,7 @@ void ClientWorker::process()
 
         if(isGameOver)
         {
-            draw(true);
+            emit drawSignal();
         }
         else
         {
@@ -128,18 +91,23 @@ void ClientWorker::process()
 
             else
             {
-                draw(false);
+                emit drawSignal();
                 emit sendPosition(xPos, yPos);
             }
 
         }
-
+        emit drawSignal();
         Sleep(33);
 
     }
 }
 
-void ClientWorker::receivePosition(int x, int y)
+void ClientWorker::randomSlot(int x, int y)
+{
+    qDebug() << x << "/" << y;
+}
+
+void ClientWorker::receivePositionSlot(int x, int y)
 {
     tailArray[x][y] = true;
 }

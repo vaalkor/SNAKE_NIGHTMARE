@@ -22,7 +22,7 @@ public:
     void sendTcpMessage();
 
 signals:
-    void receivePosition(int x, int y);
+    void receivePositionSignal(int x, int y);
 
 public slots:
     void sendPosition(int x, int y);

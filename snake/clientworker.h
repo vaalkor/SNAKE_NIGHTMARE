@@ -41,12 +41,14 @@ public:
 
 signals:
     void sendPosition(int x, int y);
+    void drawSignal();
 
 public slots:
     //void readyRead();
     void process();
     void focusChanged(bool value);
-    void receivePosition(int x, int y);
+    void randomSlot(int x, int y);
+    void receivePositionSlot(int x, int y);
 };
 
 #endif // CLIENTWORKER_H

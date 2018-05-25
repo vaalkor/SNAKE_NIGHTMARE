@@ -40,6 +40,9 @@ public:
     tcpServer *server;
     tcpClient *client;
 
+    void draw(bool endGame);
+    void drawSquare(int x, int y, QRgb color);
+
     virtual bool event(QEvent *e);
 
     QImage image;
@@ -47,8 +50,8 @@ public:
 signals:
     focusChanged(bool value);
 public slots:
-
-
+    void receivePositionSlot(int x, int y);
+    void drawSlot();
 private:
     Ui::MainWindow *ui;
 };

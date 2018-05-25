@@ -127,20 +127,28 @@ void tcpServer::readyRead()
         switch(mType){
             case MessageType::PLAYER_CONNECTED :
                 qDebug() << "player connected";
+                break;
             case MessageType::PLAYER_DISCONNECTED :
                 qDebug() << "player disconnected";
+                break;
             case MessageType::POSITION_UPDATE :
                 qDebug() << "player update";
+                break;
             case MessageType::BOMB_ACTIVATION :
                 qDebug() << "bomb activation";
+                break;
             case MessageType::PLAYER_DIED :
                 qDebug() << "player died";
+                break;
             case MessageType::PLAYER_WON :
                 qDebug() << "player won";
+                break;
             case MessageType::GAME_BEGIN :
                 qDebug() << "game begun";
+                break;
             case MessageType::TIMER_UPDATE :
                 qDebug() << "timer update";
+                break;
         }
 
         //qDebug() << "x/y: " << x << "/" << y;

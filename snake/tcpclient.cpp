@@ -32,8 +32,8 @@ void tcpClient::processPendingDatagrams()
         QDataStream inblock(&datagram, QIODevice::ReadOnly);
         inblock >> x;
         inblock >> y;
-        qDebug() << x << "/" << y;
-        emit receivePosition(x,y);
+        //qDebug() << x << "/" << y;
+        emit receivePositionSignal(x,y);
     }
 }
 
@@ -61,7 +61,6 @@ void tcpClient::sendTcpMessage()
     out.setVersion(QDataStream::Qt_4_0);
 
     unsigned char message = qrand() % (unsigned int)MessageType::COUNT;
-    //int message = 50;
     out << message;
 
     tcpSocket->write(block);
