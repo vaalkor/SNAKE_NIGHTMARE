@@ -19,7 +19,7 @@ MainWindow::MainWindow(bool isServer_, QWidget *parent) :
         serverWorker = new ServerWorker();
         serverWorker->w = this;
 
-        QObject::connect(server, SIGNAL(drawPosition(int,int)), serverWorker, SLOT(drawPosition(int,int)) );
+        QObject::connect(server, SIGNAL(receivePositionSignal(int,int)), this, SLOT(serverReceivePositionSlot(int,int)) );
 
     }else //is client
     {
@@ -33,21 +33,37 @@ MainWindow::MainWindow(bool isServer_, QWidget *parent) :
         //QObject::connect(client, SIGNAL(receivePositionSignal(int,int)), clientWorker, SLOT(receivePositionSlot(int,int)));
         //QObject::connect(client, SIGNAL(receivePositionSignal(int,int)), clientWorker, SLOT(randomSlot(int,int)) );
         //QObject::connect(client, &tcpClient::receivePositionSignal, clientWorker, &ClientWorker::receivePositionSlot);
-        QObject::connect(client, SIGNAL(receivePositionSignal(int,int)), this, SLOT(receivePositionSlot(int,int)) );
+
+        QObject::connect(client, SIGNAL(receivePositionSignal(int,int)), this, SLOT(clientReceivePositionSlot(int,int)) );
 
         QObject::connect(this, &MainWindow::focusChanged, clientWorker, &ClientWorker::focusChanged); //for some reason this connection is not actually working.. oh well... what the fuck.. i dont get it son.. i dont get it...
 
         QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
+        QObject::connect(thread, SIGNAL(finished()), this, SLOT(threadFinished()));
         QObject::connect(clientWorker, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
+        QObject::connect(clientWorker, SIGNAL(sendKillAcknowledgement()), this, SLOT(receivedKillAcknowledgement()));
 
     }
 
-    //setAttribute(Qt::WA_DeleteOnClose); THIS WORKS BUT I HAVEN'T DEALT WITH DELETING PROPERLY YET. SHIT DEADLOCKS SON...
+    //setAttribute(Qt::WA_DeleteOnClose); //THIS WORKS BUT I HAVEN'T DEALT WITH DELETING PROPERLY YET. SHIT DEADLOCKS SON...
 
     thread->start();
 }
 
-void MainWindow::receivePositionSlot(int x, int y)
+void MainWindow::threadFinished()
+{
+    qDebug() << "thread finished mate...";
+}
+
+void MainWindow::serverReceivePositionSlot(int x, int y)
+{
+    serverWorker->xPos = x;
+    serverWorker->yPos = y;
+    serverWorker->tailArray[x][y] = true;
+    draw(false);
+}
+
+void MainWindow::clientReceivePositionSlot(int x, int y)
 {
     clientWorker->tailArray[x][y] = true;
 }
@@ -62,6 +78,20 @@ void MainWindow::paintEvent(QPaintEvent *event)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "goodbye!";
+    if(!isServer)
+    {
+        //clientWorker->mutex.lock();
+        clientWorker->kill = true;
+        //clientWorker->mutex.unlock();
+    }
+}
+
+void MainWindow::receivedKillAcknowledgement()
+{
+    qDebug() << "received kill acknowledge mate...";
+    thread->quit();
+    thread->wait();
+    deleteLater();
 }
 
 bool MainWindow::event(QEvent *e)
@@ -82,13 +112,12 @@ bool MainWindow::event(QEvent *e)
             //emit focusChanged(false);
         }
     }
-
+    return true;
 }
 
 MainWindow::~MainWindow()
 {
-    //thread->quit();
-    thread->wait();
+    qDebug() << "isServer: " << isServer << "... DESTRUCTOR CALLED...";
     if(isServer)
     {
         delete serverWorker;
@@ -99,7 +128,6 @@ MainWindow::~MainWindow()
         delete clientWorker;
         delete client;
     }
-    //delete worker2;
     delete ui;
     delete thread;
 }
@@ -143,7 +171,7 @@ void MainWindow::draw(bool endGame)
             for(unsigned int j=0; j<100; j++)
                 if(isServer && serverWorker->tailArray[i][j])
                     drawSquare(i,j,qRgb(255,255,255));
-                else if(clientWorker->tailArray[i][j])
+                else if(!isServer && clientWorker->tailArray[i][j])
                     drawSquare(i,j,qRgb(255,255,255));
 
         if(!isServer)

@@ -53,14 +53,6 @@ bool ServerWorker::checkCollisions()
         return false;
 }
 
-void ServerWorker::drawPosition(int x, int y)
-{
-    xPos = x;
-    yPos = y;
-    tailArray[x][y] = true;
-    draw(false);
-}
-
 void ServerWorker::process()
 {
 }

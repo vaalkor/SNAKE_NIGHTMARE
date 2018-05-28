@@ -28,7 +28,7 @@ void ClientWorker::process()
     int xDir = 1;
     int yDir = 0;
 
-    while(1)
+    while(!kill)
     {
         if(inFocus)
         {
@@ -66,7 +66,6 @@ void ClientWorker::process()
             }
             if(GetKeyState(VK_ESCAPE) & 0x8000 || GetKeyState(VK_RETURN) & 0x8000)
             {
-                std::cout << "esacpe!\n";
                 isGameOver = false;
                 xPos = 50;
                 yPos = 50;
@@ -100,6 +99,10 @@ void ClientWorker::process()
         Sleep(33);
 
     }
+
+    emit sendKillAcknowledgement();
+
+    qDebug() << "reached the end of process mate...";
 }
 
 void ClientWorker::randomSlot(int x, int y)

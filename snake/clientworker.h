@@ -5,6 +5,8 @@
 #include "mainwindow.h"
 #include <QtNetwork/QUdpSocket>
 #include <QTcpSocket>
+#include <QMutex>
+#include <QWaitCondition>
 
 class SnakePiece{
 public:
@@ -24,6 +26,10 @@ public:
     MainWindow *w;
 
     bool isGameOver = false;
+    bool kill = false;
+
+    QMutex mutex;
+    QWaitCondition waitCondition;
 
     int xPos = 50;
     int yPos = 50;
@@ -42,6 +48,7 @@ public:
 signals:
     void sendPosition(int x, int y);
     void drawSignal();
+    void sendKillAcknowledgement();
 
 public slots:
     //void readyRead();

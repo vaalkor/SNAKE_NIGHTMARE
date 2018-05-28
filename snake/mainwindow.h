@@ -50,8 +50,11 @@ public:
 signals:
     focusChanged(bool value);
 public slots:
-    void receivePositionSlot(int x, int y);
+    void serverReceivePositionSlot(int x, int y);
+    void clientReceivePositionSlot(int x, int y);
     void drawSlot();
+    void receivedKillAcknowledgement();
+    void threadFinished();
 private:
     Ui::MainWindow *ui;
 };

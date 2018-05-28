@@ -39,7 +39,7 @@ public:
     void keyPressEvent(QKeyEvent *event);
 
 signals:
-    void drawPosition(int x, int y);
+    void receivePositionSignal(int x, int y);
 public slots:
     void handleConnection();
     void sendDataToClient();

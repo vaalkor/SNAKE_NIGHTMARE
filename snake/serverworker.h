@@ -5,6 +5,8 @@
 #include "mainwindow.h"
 #include <QtNetwork/QUdpSocket>
 #include <QTcpSocket>
+#include <QMutex>
+#include <QWaitCondition>
 
 class MainWindow;
 
@@ -16,6 +18,9 @@ public:
     MainWindow *w;
 
     bool isGameOver = false;
+
+    QMutex mutex;
+    QWaitCondition waitCondition;
 
     int xPos = 0;
     int yPos = 0;
@@ -29,7 +34,6 @@ public:
 signals:
 
 public slots:
-    void drawPosition(int x, int y);
     void process();
 };
 

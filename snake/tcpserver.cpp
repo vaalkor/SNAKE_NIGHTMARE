@@ -38,7 +38,7 @@ void tcpServer::processPendingDatagrams()
         inblock >> x;
         inblock >> y;
         //qDebug() << x << "/" << y;
-        emit drawPosition(x,y);
+        emit receivePositionSignal(x,y);
 
         for(const QTcpSocket *client : clients)
         {
@@ -69,7 +69,6 @@ void tcpServer::handleConnection()
         QObject::connect(tempClient, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
         QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyRead()));
     }
-
 }
 
 void tcpServer::clientDisconnected()
@@ -78,7 +77,15 @@ void tcpServer::clientDisconnected()
     qDebug() << "client disconnected mate";
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender()); //this will apparently give us the pointer to the socket that was disconnected mate...
 
-    // INSERT LOGIC HERE FOR REMOVING FROM LIST AND OTHER THINGS...
+
+    for(auto it=clients.begin(); it < clients.end(); it++)
+    {
+        if(clientSocket == *it)
+        {
+            clients.erase(it);
+            break;
+        }
+    }
 
     clientSocket->deleteLater();
 }
