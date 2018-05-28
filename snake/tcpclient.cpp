@@ -13,11 +13,11 @@ tcpClient::tcpClient(QHostAddress address_, QObject *parent) : address(address_)
     udpSocket->bind(1234);
 
     QObject::connect(tcpSocket, SIGNAL(readyRead()), this, SLOT( readyReadTcp()) );
-    QObject::connect(udpSocket, SIGNAL(readyRead()), this, SLOT( processPendingDatagrams()) );
+    QObject::connect(udpSocket, SIGNAL(readyRead()), this, SLOT( readyReadUdp()) );
 
 }
 
-void tcpClient::processPendingDatagrams()
+void tcpClient::readyReadUdp()
 {
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
@@ -60,20 +60,62 @@ void tcpClient::sendTcpMessage()
     tcpSocket->write(block);
 }
 
-void tcpClient::readyRead()
-{
-    qDebug() << "In the readyread function mate\n";
-    in.startTransaction();
-
-    int x;
-    in >> x;
-    qDebug() << "x: " << x;
-
-    if(!in.commitTransaction())
-        return;
-}
-
 void tcpClient::readyReadTcp()
 {
+    qDebug() << "CLIENT READING TCP MESSAGE!";
+    //this gets the address of the socket we are going to read from.
+    QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender());
 
+    qDebug() << "Bytes available: " << clientSocket->bytesAvailable();
+    while(clientSocket->bytesAvailable())
+    {
+        int dataSize = clientSocket->bytesAvailable();
+
+        QByteArray buffer;
+        buffer = clientSocket->read(dataSize);
+
+        /*while(buffer.size() < dataSize) // only part of the message has been received
+        {
+            clientTcp->waitForReadyRead(); // alternatively, store the buffer and wait for the next readyRead()
+            buffer.append(clientTcp->read(dataSize - buffer.size())); // append the remaining bytes of the message
+        }*/
+
+        QDataStream inblock(&buffer, QIODevice::ReadOnly);
+
+        unsigned char mTypeChar;
+        inblock >> mTypeChar;
+        MessageType mType;
+        mType = static_cast<MessageType>(mTypeChar);
+
+        qDebug() << (unsigned int)mType;
+
+        switch(mType){
+            case MessageType::PLAYER_CONNECTED :
+                qDebug() << "player connected";
+                break;
+            case MessageType::PLAYER_DISCONNECTED :
+                qDebug() << "player disconnected";
+                break;
+            case MessageType::POSITION_UPDATE :
+                qDebug() << "player update";
+                break;
+            case MessageType::BOMB_ACTIVATION :
+                qDebug() << "bomb activation";
+                break;
+            case MessageType::PLAYER_DIED :
+                qDebug() << "player died";
+                break;
+            case MessageType::PLAYER_WON :
+                qDebug() << "player won";
+                break;
+            case MessageType::GAME_BEGIN :
+                qDebug() << "game begun";
+                break;
+            case MessageType::TIMER_UPDATE :
+                qDebug() << "timer update";
+                break;
+        }
+        qDebug() << "after switch!";
+
+    }
 }

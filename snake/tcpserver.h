@@ -37,13 +37,14 @@ public:
     std::vector<QTcpSocket *> clients;
 
     void keyPressEvent(QKeyEvent *event);
+    void sendTcpMessage();
 
 signals:
     void receivePositionSignal(short x, short y);
 public slots:
     void handleConnection();
-    void readyRead();
-    void processPendingDatagrams();
+    void readyReadTcp();
+    void readyReadUdp();
     void clientDisconnected();
 private:
     QDataStream in;

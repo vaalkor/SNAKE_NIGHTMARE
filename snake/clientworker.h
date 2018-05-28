@@ -40,7 +40,6 @@ signals:
     void sendKillAcknowledgement();
 
 public slots:
-    //void readyRead();
     void process();
     void focusChanged(bool value);
     void receivePositionSlot(short x,short y);

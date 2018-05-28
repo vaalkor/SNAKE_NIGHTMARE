@@ -146,7 +146,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_Space)
     {
         qDebug() << "ye pressed C ye bloody basterdo...";
-        client->sendTcpMessage();
+        if(!isServer)
+            client->sendTcpMessage();
+        else
+            server->sendTcpMessage();
     }
 
 }

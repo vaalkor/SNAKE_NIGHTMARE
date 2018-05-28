@@ -30,9 +30,8 @@ signals:
 public slots:
     void sendPosition(short x, short y);
     void connect();
-    void readyRead();
     void readyReadTcp();
-    void processPendingDatagrams();
+    void readyReadUdp();
 
 private:
     QDataStream in;

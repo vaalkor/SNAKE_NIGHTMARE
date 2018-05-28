@@ -14,7 +14,7 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
     in.setVersion(QDataStream::Qt_4_0); //i dont even know if this is necessary son...
 
     QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
-    QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
+    QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(readyReadUdp()));
 
     if (!server->listen(QHostAddress::Any, 6666))
     {
@@ -26,7 +26,7 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
 
 }
 
-void tcpServer::processPendingDatagrams()
+void tcpServer::readyReadUdp()
 {
 
     while (clientUdp->hasPendingDatagrams()) {
@@ -63,7 +63,7 @@ void tcpServer::handleConnection()
         tempClient->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
         QObject::connect(tempClient, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
-        QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyRead()));
+        QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyReadTcp()));
     }
 }
 
@@ -85,7 +85,19 @@ void tcpServer::clientDisconnected()
     clientSocket->deleteLater();
 }
 
-void tcpServer::readyRead()
+void tcpServer::sendTcpMessage()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_0);
+
+    unsigned char message = qrand() % (unsigned int)MessageType::COUNT;
+    out << message;
+
+    clients[0]->write(block);
+}
+
+void tcpServer::readyReadTcp()
 {
     //this gets the address of the socket we are going to read from.
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender());
@@ -141,20 +153,6 @@ void tcpServer::readyRead()
         }
         qDebug() << "after switch!";
 
-
-        //qDebug() << "x/y: " << x << "/" << y;
-        //emit drawPosition(x,y);
     }
 
-    /*in.startTransaction();
-
-    int x,y;
-    in >> x;
-    in >> y;
-    qDebug() << "x/y: " << x << "/" << y;
-
-    //emit drawPosition(x,y);
-
-    if(!in.commitTransaction())
-        return;*/
 }

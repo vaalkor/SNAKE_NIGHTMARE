@@ -17,6 +17,8 @@ public:
 
 private slots:
     void on_startGameButton_clicked();
+    void on_stopGameButton_clicked();
+    void on_quitButton_clicked();
 
 private:
     Ui::ServerControlWindow *ui;
