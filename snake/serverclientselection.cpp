@@ -18,9 +18,10 @@ ServerClientSelection::~ServerClientSelection()
 
 void ServerClientSelection::on_clientButtonClicked_clicked()
 {
-    qDebug() << "client button clicked";
-    MainWindow *w = new MainWindow(false);
-    w->show();
+    bool testingMode = ui->clientButtonClicked->isChecked();
+    QHostAddress address = QHostAddress(ui->IPSelectionBox->text());
+    MainWindow *w = new MainWindow(false, testingMode, address);
+    //w->show();
 }
 
 void ServerClientSelection::on_serverButtonClicked_clicked()

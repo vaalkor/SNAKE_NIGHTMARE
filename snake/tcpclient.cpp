@@ -5,8 +5,8 @@
 #include <iostream>
 #include <QHostAddress>
 #include "tcpserver.h"
-//#include <QtNetwork/QHostAddress>
-tcpClient::tcpClient(QObject *parent) : QObject(parent)
+
+tcpClient::tcpClient(QHostAddress address_, QObject *parent) : address(address_), QObject(parent)
 {
     tcpSocket = new QTcpSocket(this);
     udpSocket = new QUdpSocket(this);
@@ -14,11 +14,6 @@ tcpClient::tcpClient(QObject *parent) : QObject(parent)
 
     QObject::connect(tcpSocket, SIGNAL(readyRead()), this, SLOT( readyReadTcp()) );
     QObject::connect(udpSocket, SIGNAL(readyRead()), this, SLOT( processPendingDatagrams()) );
-
-    connect(); //connect to server over tcp... for important messages that need guaranteed delivery.
-
-    //in.setDevice(tcpSocket);
-    //in.setVersion(QDataStream::Qt_4_0);
 
 }
 
@@ -28,29 +23,28 @@ void tcpClient::processPendingDatagrams()
         QByteArray datagram;
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size());
-        int x,y;
+        short x,y;
         QDataStream inblock(&datagram, QIODevice::ReadOnly);
         inblock >> x;
         inblock >> y;
-        //qDebug() << x << "/" << y;
         emit receivePositionSignal(x,y);
     }
 }
 
 void tcpClient::connect()
 {
-    tcpSocket->connectToHost("192.168.0.118", 6666);
+    tcpSocket->connectToHost(address, 6666);
     connected  = true;
 }
 
-void tcpClient::sendPosition(int x, int y)
+void tcpClient::sendPosition(short x, short y)
 {
     QByteArray buffer;
     QDataStream stream(&buffer, QIODevice::WriteOnly);
     stream << x;
     stream << y;
 
-    udpSocket->writeDatagram(buffer.data(), buffer.size(), QHostAddress("192.168.0.118"), 6666);
+    udpSocket->writeDatagram(buffer.data(), buffer.size(), address, 6666);
 
 }
 

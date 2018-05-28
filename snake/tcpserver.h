@@ -39,10 +39,9 @@ public:
     void keyPressEvent(QKeyEvent *event);
 
 signals:
-    void receivePositionSignal(int x, int y);
+    void receivePositionSignal(short x, short y);
 public slots:
     void handleConnection();
-    void sendDataToClient();
     void readyRead();
     void processPendingDatagrams();
     void clientDisconnected();

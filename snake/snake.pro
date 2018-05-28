@@ -31,7 +31,8 @@ SOURCES += \
     serverclientselection.cpp \
     tcpserver.cpp \
     clientworker.cpp \
-    serverworker.cpp
+    serverworker.cpp \
+    servercontrolwindow.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -39,8 +40,10 @@ HEADERS += \
     serverclientselection.h \
     tcpserver.h \
     clientworker.h \
-    serverworker.h
+    serverworker.h \
+    servercontrolwindow.h
 
 FORMS += \
         mainwindow.ui \
-    serverclientselection.ui
+    serverclientselection.ui \
+    servercontrolwindow.ui

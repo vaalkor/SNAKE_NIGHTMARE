@@ -9,17 +9,9 @@
 #include <random>
 #include <QGuiApplication>
 
-SnakePiece::SnakePiece(int x_, int y_) : x(x_), y(y_) {}
-
 ClientWorker::ClientWorker(QObject *parent) : QObject(parent)
 {
     memset(tailArray, 0, sizeof(bool)*100*100);
-}
-
-bool ClientWorker::checkCollisions()
-{
-    //NOT DONE YET MATE!
-    return false; //implement later!
 }
 
 void ClientWorker::process()
@@ -80,16 +72,17 @@ void ClientWorker::process()
         }
         else
         {
-            xPos = xPos + xDir;
-            yPos = yPos + yDir;
+            short xPosNew = xPos + xDir;
+            short yPosNew = yPos + yDir;
 
-            if( xPos >= 100 || xPos < 0 || yPos < 0 || yPos >= 100 || checkCollisions())
+            if( xPosNew >= 100 || xPosNew < 0 || yPosNew < 0 || yPosNew >= 100)
             {
                 isGameOver = true;
             }
-
             else
             {
+                xPos = xPosNew;
+                yPos = yPosNew;
                 emit drawSignal();
                 emit sendPosition(xPos, yPos);
             }
@@ -100,23 +93,17 @@ void ClientWorker::process()
 
     }
 
+    //emit a signal that notifies the main thread that this thread has finished processing and is ready to be destroyed...
     emit sendKillAcknowledgement();
-
-    qDebug() << "reached the end of process mate...";
 }
 
-void ClientWorker::randomSlot(int x, int y)
-{
-    qDebug() << x << "/" << y;
-}
-
-void ClientWorker::receivePositionSlot(int x, int y)
+//this is for receiving an update to the tail array from the server
+void ClientWorker::receivePositionSlot(short x, short y)
 {
     tailArray[x][y] = true;
 }
 
 void ClientWorker::focusChanged(bool value)
 {
-    qDebug() << "focus changed";
     inFocus = value;
 }

@@ -2,11 +2,14 @@
 #include "ui_mainwindow.h"
 #include "tcpserver.h"
 #include "tcpclient.h"
+#include <QHostAddress>
 
-MainWindow::MainWindow(bool isServer_, QWidget *parent) :
+MainWindow::MainWindow(bool isServer_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    isServer(isServer_)
+    isServer(isServer_),
+    testingMode(testingMode_),
+    serverAddress(serverAddress_)
 {
     ui->setupUi(this);
     image = QImage(500, 500, QImage::Format_RGB32);
@@ -19,43 +22,50 @@ MainWindow::MainWindow(bool isServer_, QWidget *parent) :
         serverWorker = new ServerWorker();
         serverWorker->w = this;
 
-        QObject::connect(server, SIGNAL(receivePositionSignal(int,int)), this, SLOT(serverReceivePositionSlot(int,int)) );
+        QObject::connect(server, SIGNAL(receivePositionSignal(short,short)), this, SLOT(serverReceivePositionSlot(short,short)) );
 
     }else //is client
     {
-        client = new tcpClient();
-
         clientWorker = new ClientWorker();
-        clientWorker->w = this;
-        clientWorker->moveToThread(thread);
 
-        QObject::connect(clientWorker, SIGNAL(sendPosition(int,int)), client, SLOT(sendPosition(int,int)));
-        //QObject::connect(client, SIGNAL(receivePositionSignal(int,int)), clientWorker, SLOT(receivePositionSlot(int,int)));
-        //QObject::connect(client, SIGNAL(receivePositionSignal(int,int)), clientWorker, SLOT(randomSlot(int,int)) );
-        //QObject::connect(client, &tcpClient::receivePositionSignal, clientWorker, &ClientWorker::receivePositionSlot);
-
-        QObject::connect(client, SIGNAL(receivePositionSignal(int,int)), this, SLOT(clientReceivePositionSlot(int,int)) );
-
-        QObject::connect(this, &MainWindow::focusChanged, clientWorker, &ClientWorker::focusChanged); //for some reason this connection is not actually working.. oh well... what the fuck.. i dont get it son.. i dont get it...
-
-        QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
-        QObject::connect(thread, SIGNAL(finished()), this, SLOT(threadFinished()));
-        QObject::connect(clientWorker, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
-        QObject::connect(clientWorker, SIGNAL(sendKillAcknowledgement()), this, SLOT(receivedKillAcknowledgement()));
+        client = new tcpClient(serverAddress);
+        QObject::connect(client->tcpSocket, SIGNAL(connected()), this, SLOT(clientConnectionSuccess()));
+        QObject::connect(client->tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientConnectionFailure(QAbstractSocket::SocketError)));
+        client->connect();
 
     }
+}
 
-    //setAttribute(Qt::WA_DeleteOnClose); //THIS WORKS BUT I HAVEN'T DEALT WITH DELETING PROPERLY YET. SHIT DEADLOCKS SON...
+void MainWindow::clientConnectionSuccess()
+{
+    show();
+
+    clientWorker->moveToThread(thread);
+
+    QObject::connect(clientWorker, SIGNAL(sendPosition(short,short)), client, SLOT(sendPosition(short,short)));
+
+    QObject::connect(client, SIGNAL(receivePositionSignal(short,short)), this, SLOT(clientReceivePositionSlot(short,short)) );
+
+    QObject::connect(this, &MainWindow::focusChanged, clientWorker, &ClientWorker::focusChanged); //for some reason this connection is not actually working.. oh well... what the fuck.. i dont get it son.. i dont get it...
+
+    QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
+
+    QObject::connect(clientWorker, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
+    QObject::connect(clientWorker, SIGNAL(sendKillAcknowledgement()), this, SLOT(receivedKillAcknowledgement()));
 
     thread->start();
-}
 
-void MainWindow::threadFinished()
+    qDebug() << "client connection success";
+}
+void MainWindow::clientConnectionFailure(QAbstractSocket::SocketError err)
 {
-    qDebug() << "thread finished mate...";
+    qDebug() << "client connection failure: " << err;
+
+    if(err == QAbstractSocket::NetworkError)
+        deleteLater();
 }
 
-void MainWindow::serverReceivePositionSlot(int x, int y)
+void MainWindow::serverReceivePositionSlot(short x, short y)
 {
     serverWorker->xPos = x;
     serverWorker->yPos = y;
@@ -63,7 +73,7 @@ void MainWindow::serverReceivePositionSlot(int x, int y)
     draw(false);
 }
 
-void MainWindow::clientReceivePositionSlot(int x, int y)
+void MainWindow::clientReceivePositionSlot(short x, short y)
 {
     clientWorker->tailArray[x][y] = true;
 }
@@ -79,11 +89,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "goodbye!";
     if(!isServer)
-    {
-        //clientWorker->mutex.lock();
         clientWorker->kill = true;
-        //clientWorker->mutex.unlock();
-    }
+    else
+        deleteLater();
 }
 
 void MainWindow::receivedKillAcknowledgement()
@@ -149,7 +157,7 @@ void MainWindow::drawSlot()
     draw(false);
 }
 
-void MainWindow::drawSquare(int x, int y, QRgb color)
+void MainWindow::drawSquare(short x, short y, QRgb color)
 {
     for(int i=x*5; i<x*5+5; i++)
         for(int j=y*5; j<y*5+5; j++)

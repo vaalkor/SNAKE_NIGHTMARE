@@ -6,26 +6,29 @@
 #include <QUdpSocket>
 #include <QDataStream>
 #include <QKeyEvent>
+#include <QHostAddress>
 
 class tcpClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit tcpClient(QObject *parent = nullptr);
+    explicit tcpClient(QHostAddress address_, QObject *parent = nullptr);
     //QTcpSocket *tcpSocket;
     QUdpSocket *udpSocket;
     QTcpSocket *tcpSocket;
     bool connected = false;
+
+    QHostAddress address;
 
     unsigned int clientID;
 
     void sendTcpMessage();
 
 signals:
-    void receivePositionSignal(int x, int y);
+    void receivePositionSignal(short x, short y);
 
 public slots:
-    void sendPosition(int x, int y);
+    void sendPosition(short x, short y);
     void connect();
     void readyRead();
     void readyReadTcp();

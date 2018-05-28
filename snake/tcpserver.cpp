@@ -33,7 +33,7 @@ void tcpServer::processPendingDatagrams()
         QByteArray datagram;
         datagram.resize(clientUdp->pendingDatagramSize());
         clientUdp->readDatagram(datagram.data(), datagram.size());
-        int x,y;
+        short x,y;
         QDataStream inblock(&datagram, QIODevice::ReadOnly);
         inblock >> x;
         inblock >> y;
@@ -52,19 +52,15 @@ void tcpServer::processPendingDatagrams()
     }
 }
 
+//this is only called when a NEW tcp connection is made. Clients make these once when they join.
 void tcpServer::handleConnection()
 {
-    qDebug() << "Here we go mate we are handling a fooking connection son\n";
-
     while(server->hasPendingConnections())
     {
         QTcpSocket *tempClient = server->nextPendingConnection();
         clients.push_back( tempClient );
 
         tempClient->setSocketOption(QAbstractSocket::LowDelayOption,1);
-
-        //in.setDevice(clientTcp); you will have to do this every time you get a fucking tcp message will you not mate????? or will you have to have a seperate fucking thing for each one?... good question son good question...
-        //in.setVersion(QDataStream::Qt_4_0);
 
         QObject::connect(tempClient, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
         QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyRead()));
@@ -73,8 +69,7 @@ void tcpServer::handleConnection()
 
 void tcpServer::clientDisconnected()
 {
-    //IM NOT SURE ABOUT THIS AT THE MOMENT MATE. IT'S HAPPENING WHEN I FUCKING CREATE THE SOCKET, NOT WHEN I CLOSE IT.... STRANGE...
-    qDebug() << "client disconnected mate";
+    qDebug() << "Client disconnected.";
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender()); //this will apparently give us the pointer to the socket that was disconnected mate...
 
 
@@ -90,27 +85,14 @@ void tcpServer::clientDisconnected()
     clientSocket->deleteLater();
 }
 
-void tcpServer::sendDataToClient()
-{ //this was just for testing.. now its just useless...
-    /*QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
-
-    out << count;
-    count++;
-
-    clientTcp->write(block);*/
-}
-
 void tcpServer::readyRead()
 {
-    QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender()); //this will apparently give us the pointer to the socket that was disconnected mate...
-    qDebug() << "clientSocket address: " << clientSocket;
-    qDebug() << "in readyread son";
+    //this gets the address of the socket we are going to read from.
+    QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender());
 
+    qDebug() << "Bytes available: " << clientSocket->bytesAvailable();
     while(clientSocket->bytesAvailable())
     {
-        qDebug() << "bytes available son!";
         int dataSize = clientSocket->bytesAvailable();
 
         QByteArray buffer;
@@ -125,8 +107,8 @@ void tcpServer::readyRead()
         QDataStream inblock(&buffer, QIODevice::ReadOnly);
 
         unsigned char mTypeChar;
+        inblock >> mTypeChar;
         MessageType mType;
-        inblock >> mTypeChar; //this is gypo as fuck mate.
         mType = static_cast<MessageType>(mTypeChar);
 
         qDebug() << (unsigned int)mType;
@@ -157,6 +139,8 @@ void tcpServer::readyRead()
                 qDebug() << "timer update";
                 break;
         }
+        qDebug() << "after switch!";
+
 
         //qDebug() << "x/y: " << x << "/" << y;
         //emit drawPosition(x,y);
