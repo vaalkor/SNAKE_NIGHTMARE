@@ -3,6 +3,7 @@
 #include "tcpserver.h"
 #include "tcpclient.h"
 #include <QHostAddress>
+#include "servercontrolwindow.h"
 
 MainWindow::MainWindow(bool isServer_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
     QMainWindow(parent),
@@ -20,9 +21,9 @@ MainWindow::MainWindow(bool isServer_, bool testingMode_, QHostAddress serverAdd
     {
         server = new tcpServer();
         serverWorker = new ServerWorker();
-        serverWorker->w = this;
 
         QObject::connect(server, SIGNAL(receivePositionSignal(short,short)), this, SLOT(serverReceivePositionSlot(short,short)) );
+        QObject::connect(&serverWorker->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
 
     }else //is client
     {

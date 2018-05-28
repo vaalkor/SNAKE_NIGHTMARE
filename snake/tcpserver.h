@@ -9,6 +9,30 @@
 #include <QUdpSocket>
 #include <QKeyEvent>
 #include <vector>
+#include <QRgb>
+
+class PlayerInfo
+{
+    unsigned char playerID;
+    QRgb color;
+    char name[20];
+};
+
+class GameInfo
+{
+    int width;
+    int height;
+
+    bool enableSprint = true;
+    bool enableBombs = true;
+
+    bool normalMode = true;
+    bool revengeMode = false;
+    bool PUBGmode = false;
+
+    short numPlayers = 0;
+
+};
 
 enum class MessageType : unsigned char
 {
@@ -20,6 +44,7 @@ enum class MessageType : unsigned char
     PLAYER_WON,
     GAME_BEGIN,
     TIMER_UPDATE,
+    GAME_INFO,
     COUNT //this is a cheeky way of accessing the number of enum entries in code.
 };
 

@@ -13,6 +13,8 @@
 ServerWorker::ServerWorker(QObject *parent) : QObject(parent)
 {
     memset(tailArray, 0, sizeof(bool)*100*100);
+
+    serverWindow.show();
 }
 
 bool ServerWorker::checkCollisions()

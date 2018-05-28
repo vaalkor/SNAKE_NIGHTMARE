@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include "servercontrolwindow.h"
+#include "tcpserver.h"
 
 class MainWindow;
 
@@ -16,8 +17,11 @@ class ServerWorker : public QObject
     Q_OBJECT
 public:
     explicit ServerWorker(QObject *parent = nullptr);
-    MainWindow *w;
-    ServerControlWindow *serverWindow;
+
+    ServerControlWindow serverWindow;
+
+    GameInfo lobbyGameInfo; //this stores the temporary settings chosen in lobby
+    GameInfo currentGameInfo; //this stores the settings for the duration of a game which were set when the game was started
 
     bool isGameOver = false;
     bool gameInProgress = false;

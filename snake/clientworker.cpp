@@ -11,6 +11,12 @@
 
 ClientWorker::ClientWorker(QObject *parent) : QObject(parent)
 {
+    /*tailArray = static_cast<bool**>(malloc(sizeof(bool*)*100));
+    for(unsigned int i=0; i<100; i++)
+    {
+        tailArray[i] = static_cast<bool*>( malloc(sizeof(bool)*100) );
+        memset(tailArray[i], 0, sizeof(bool)*100);
+    }*/
     memset(tailArray, 0, sizeof(bool)*100*100);
 }
 
@@ -101,9 +107,15 @@ void ClientWorker::process()
 void ClientWorker::receivePositionSlot(short x, short y)
 {
     tailArray[x][y] = true;
+
 }
 
 void ClientWorker::focusChanged(bool value)
 {
     inFocus = value;
+}
+
+ClientWorker::~ClientWorker()
+{
+
 }

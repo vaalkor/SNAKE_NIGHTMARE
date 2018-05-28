@@ -13,7 +13,13 @@ class ServerControlWindow : public QDialog
 
 public:
     explicit ServerControlWindow(QWidget *parent = 0);
+
+    virtual void reject();
+
     ~ServerControlWindow();
+
+signals:
+    rejectSignal();
 
 private slots:
     void on_startGameButton_clicked();

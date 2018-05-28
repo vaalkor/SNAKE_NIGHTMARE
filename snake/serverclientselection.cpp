@@ -20,8 +20,8 @@ void ServerClientSelection::on_clientButtonClicked_clicked()
 {
     bool testingMode = ui->clientButtonClicked->isChecked();
     QHostAddress address = QHostAddress(ui->IPSelectionBox->text());
-    MainWindow *w = new MainWindow(false, testingMode, address);
-    //w->show();
+    new MainWindow(false, testingMode, address);
+
 }
 
 void ServerClientSelection::on_serverButtonClicked_clicked()

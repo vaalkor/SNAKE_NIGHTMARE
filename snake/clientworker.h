@@ -7,6 +7,7 @@
 #include <QTcpSocket>
 #include <QMutex>
 #include <QWaitCondition>
+#include <tcpserver.h>
 
 class MainWindow;
 
@@ -16,7 +17,10 @@ class ClientWorker : public QObject
 public:
     explicit ClientWorker(QObject *parent = nullptr);
 
+    GameInfo gameInfo;
+
     bool isGameOver = false;
+
     bool gameInPropress = false;
     bool kill = false;
 
@@ -25,14 +29,17 @@ public:
 
     short xPos = 50;
     short yPos = 50;
-    short unsigned int clientID = 0;
+    unsigned char clientID = 0;
 
     bool inFocus = true;
 
     bool tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
+    //bool **tailArray;
 
     void drawSquare(short x, short y, QRgb color);
     void draw(bool endGame);
+
+    ~ClientWorker();
 
 signals:
     void sendPosition(short x, short y);

@@ -13,7 +13,7 @@ class tcpClient : public QObject
     Q_OBJECT
 public:
     explicit tcpClient(QHostAddress address_, QObject *parent = nullptr);
-    //QTcpSocket *tcpSocket;
+
     QUdpSocket *udpSocket;
     QTcpSocket *tcpSocket;
     bool connected = false;

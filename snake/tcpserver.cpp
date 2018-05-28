@@ -19,10 +19,9 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
     if (!server->listen(QHostAddress::Any, 6666))
     {
         qDebug() << "could not listen on server mate..\n";
-        //QMessageBox::critical(this, tr("Fortune Server"), tr("Unable to start the server: %1.").arg(tcpServer->errorString()));
     }
     else
-        qDebug() << "Listening on port 1234, localhost mate";
+        qDebug() << "Listening on port 6666, localhost mate";
 
 }
 
@@ -85,6 +84,7 @@ void tcpServer::clientDisconnected()
     clientSocket->deleteLater();
 }
 
+//this is just for testing at the moment.
 void tcpServer::sendTcpMessage()
 {
     QByteArray block;
@@ -110,11 +110,11 @@ void tcpServer::readyReadTcp()
         QByteArray buffer;
         buffer = clientSocket->read(dataSize);
 
-        /*while(buffer.size() < dataSize) // only part of the message has been received
+        while(buffer.size() < dataSize) // only part of the message has been received
         {
-            clientTcp->waitForReadyRead(); // alternatively, store the buffer and wait for the next readyRead()
-            buffer.append(clientTcp->read(dataSize - buffer.size())); // append the remaining bytes of the message
-        }*/
+            clientSocket->waitForReadyRead(); // alternatively, store the buffer and wait for the next readyRead()
+            buffer.append(clientSocket->read(dataSize - buffer.size())); // append the remaining bytes of the message
+        }
 
         QDataStream inblock(&buffer, QIODevice::ReadOnly);
 
@@ -126,6 +126,9 @@ void tcpServer::readyReadTcp()
         qDebug() << (unsigned int)mType;
 
         switch(mType){
+            case MessageType::GAME_INFO :
+                qDebug() << "game info mate";
+                break;
             case MessageType::PLAYER_CONNECTED :
                 qDebug() << "player connected";
                 break;

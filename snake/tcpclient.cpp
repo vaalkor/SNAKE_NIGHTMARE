@@ -48,6 +48,7 @@ void tcpClient::sendPosition(short x, short y)
 
 }
 
+//this is just for testing at the moment.
 void tcpClient::sendTcpMessage()
 {
     QByteArray block;
@@ -74,11 +75,11 @@ void tcpClient::readyReadTcp()
         QByteArray buffer;
         buffer = clientSocket->read(dataSize);
 
-        /*while(buffer.size() < dataSize) // only part of the message has been received
+        while(buffer.size() < dataSize) // only part of the message has been received
         {
-            clientTcp->waitForReadyRead(); // alternatively, store the buffer and wait for the next readyRead()
-            buffer.append(clientTcp->read(dataSize - buffer.size())); // append the remaining bytes of the message
-        }*/
+            clientSocket->waitForReadyRead(); // alternatively, store the buffer and wait for the next readyRead()
+            buffer.append(clientSocket->read(dataSize - buffer.size())); // append the remaining bytes of the message
+        }
 
         QDataStream inblock(&buffer, QIODevice::ReadOnly);
 
