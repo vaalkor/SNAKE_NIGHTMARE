@@ -57,6 +57,7 @@ void MainWindow::clientConnectionSuccess()
     QObject::connect(client, SIGNAL(receivePositionSignal(unsigned char,short,short)), this, SLOT(clientReceivePositionSlot(unsigned char, short,short)) );
     QObject::connect(client, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));
     QObject::connect(client, SIGNAL(stopGameSignal()), this, SLOT(stopGameSlot()));
+    QObject::connect(client, SIGNAL(playerDiedSignal()), this, SLOT(handlePlayerDeath()));
 
     QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
 
@@ -73,10 +74,29 @@ void MainWindow::clientConnectionFailure(QAbstractSocket::SocketError err)
         deleteLater();
 }
 
+void MainWindow::handlePlayerDeath()
+{
+    clientWorker->gameInProgress = false;
+}
+
 void MainWindow::serverReceivePositionSlot(unsigned char clientID, short x, short y)
 {
-    serverWorker->tailArray[x][y] = clientID;
-    draw(false);
+    if(server->playerList[clientID].alive)
+    {
+        if(serverWorker->tailArray[x][y])
+        {
+            server->sendDeathSignal(clientID);
+            server->playerList[clientID].alive = false;
+        }
+        else
+        {
+            serverWorker->tailArray[x][y] = clientID;
+            server->sendPositionToAllClients(clientID, x, y);
+        }
+
+        draw(false);
+    }
+
 }
 
 void MainWindow::clientReceivePositionSlot(unsigned char clientID, short x, short y)

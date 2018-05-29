@@ -131,7 +131,8 @@ void tcpClient::readyReadTcp()
                     qDebug() << "bomb activation";
                     break;
                 case MessageType::PLAYER_DIED :
-                    qDebug() << "player died";
+                    qDebug() << "PLAYER DIED!!!";
+                    emit playerDiedSignal();
                     break;
                 case MessageType::PLAYER_WON :
                     qDebug() << "player won";

@@ -34,6 +34,7 @@ signals:
     void startGameSignal();
     void gameOverSignal();
     void stopGameSignal();
+    void playerDiedSignal();
 
 public slots:
     void sendPosition(short x, short y);

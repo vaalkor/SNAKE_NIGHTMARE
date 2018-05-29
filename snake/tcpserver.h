@@ -22,6 +22,7 @@ public:
     unsigned char playerID;
     QRgb color;
     char name[21];
+    bool alive = true;
 
     PlayerInfo();
     PlayerInfo(unsigned char playerID_, QRgb color_, char* name_);
@@ -81,6 +82,7 @@ public:
 
     void keyPressEvent(QKeyEvent *event);
     void sendTcpMessage();
+    void sendDeathSignal(unsigned char clientID);
 
 signals:
     void receivePositionSignal(unsigned char clientID, short x, short y);
@@ -93,6 +95,7 @@ public slots:
     void startGame();
     void gameOver(unsigned char winnerID);
     void stopGame();
+    void sendPositionToAllClients(unsigned char clientID, short x, short y);
 private:
     //QDataStream *out;
     QByteArray block;

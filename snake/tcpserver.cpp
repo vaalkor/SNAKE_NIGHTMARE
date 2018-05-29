@@ -59,17 +59,19 @@ void tcpServer::readyReadUdp()
         inblock >> y;
         //qDebug() << x << "/" << y;
         emit receivePositionSignal(clientID, x,y);
+    }
+}
 
-        for(const QTcpSocket *client : clients)
-        {
-            QByteArray buffer;
-            QDataStream stream(&buffer, QIODevice::WriteOnly); //THIS IS VERY VERY VERY TEMPORARY AT THE MOMENT BOYS. VERY TEMPORARY INDEED... ITS SHIT ATM...
-            stream << clientID;
-            stream << x;
-            stream << y;
-            clientUdp->writeDatagram(buffer.data(), buffer.size(), client->peerAddress(), 1234);
-        }
-
+void tcpServer::sendPositionToAllClients(unsigned char clientID, short x, short y)
+{
+    for(const QTcpSocket *client : clients)
+    {
+        QByteArray buffer;
+        QDataStream stream(&buffer, QIODevice::WriteOnly); //THIS IS VERY VERY VERY TEMPORARY AT THE MOMENT BOYS. VERY TEMPORARY INDEED... ITS SHIT ATM...
+        stream << clientID;
+        stream << x;
+        stream << y;
+        clientUdp->writeDatagram(buffer.data(), buffer.size(), client->peerAddress(), 1234);
     }
 }
 
@@ -171,6 +173,22 @@ void tcpServer::gameOver(unsigned char winnerID)
 
     for(auto &socket : clients)
         socket->write(block);
+}
+
+void tcpServer::sendDeathSignal(unsigned char clientID)
+{
+    playerList[clientID].alive = false;
+
+    for(QTcpSocket* socket : clients)
+        if(clientID == idList[socket])
+        {
+            block.clear();
+            QDataStream out(&block, QIODevice::WriteOnly);
+             out << (unsigned char)MessageType::PLAYER_DIED;
+
+            socket->write(block);
+            break;
+        }
 }
 
 void tcpServer::readyReadTcp()

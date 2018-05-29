@@ -67,6 +67,8 @@ public slots:
     void startGameSlot();
     void stopGameSlot();
     void updateNameListSlot();
+
+    void handlePlayerDeath();
 private:
     Ui::MainWindow *ui;
 };
