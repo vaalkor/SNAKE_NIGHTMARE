@@ -19,8 +19,9 @@ ServerClientSelection::~ServerClientSelection()
 void ServerClientSelection::on_clientButtonClicked_clicked()
 {
     bool testingMode = ui->clientButtonClicked->isChecked();
+    std::string name = ui->nameEntryBox->text().toStdString();
     QHostAddress address = QHostAddress(ui->IPSelectionBox->text());
-    new MainWindow(false, testingMode, address);
+    new MainWindow(false, name, testingMode, address);
 
 }
 

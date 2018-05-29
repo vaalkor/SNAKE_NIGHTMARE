@@ -5,13 +5,23 @@
 #include <iostream>
 #include <QAbstractSocket>
 
+PlayerInfo::PlayerInfo(){} //if I don't have a defauly constructor QHash complains at me.. so that's why this is here.
+
+PlayerInfo::PlayerInfo(unsigned char playerID_, QRgb color_, char* name_)
+    :playerID(playerID_), color(color_)
+{
+    memset(name, 0, sizeof(char)*21);
+    strncpy(name, name_, 20);
+}
+
 tcpServer::tcpServer(QObject *parent) : QObject(parent)
 {
     server = new QTcpServer(this);
     clientUdp = new QUdpSocket(this);
     clientUdp->bind(6666);
 
-    in.setVersion(QDataStream::Qt_4_0); //i dont even know if this is necessary son...
+    //out = new QDataStream(&block, QIODevice::WriteOnly);
+    //out->setVersion(QDataStream::Qt_4_0);
 
     QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
     QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(readyReadUdp()));
@@ -63,6 +73,34 @@ void tcpServer::handleConnection()
 
         QObject::connect(tempClient, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
         QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyReadTcp()));
+
+        //work out a new id for this client.
+        unsigned char tempID = 1; //this starts at 1 so I can just use 0 for having NO color in an array spot. a bit dirty. whatever.
+        for(auto it=playerList.begin(); it!=playerList.end(); it++)
+            for(auto it2=playerList.begin(); it2!=playerList.end(); it2++)
+                if( it2->playerID == tempID)
+                    tempID++;
+
+        playerList[tempID] = PlayerInfo(tempID, qRgb(qrand()%256,qrand()%256,qrand()%256), "");
+        idList[tempClient] = tempID;
+        qDebug() << "SERVER:...id: " << tempID << "...color: " << playerList[tempID].color;
+
+        //inform that person of their new ID...
+        block.clear();
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << (unsigned char)MessageType::PLAYER_ID_ASSIGNMENT;
+        out << tempID;
+        tempClient->write(block);
+
+        for(auto &client: clients)
+        {
+            block.clear();
+            QDataStream out(&block, QIODevice::WriteOnly);
+            out << (unsigned char)MessageType::PLAYER_CONNECTED;
+            out << tempID;
+            //out << playerList[tempID].color;
+            client->write(block);
+        }
     }
 }
 
@@ -87,14 +125,38 @@ void tcpServer::clientDisconnected()
 //this is just for testing at the moment.
 void tcpServer::sendTcpMessage()
 {
-    QByteArray block;
+    block.clear();
     QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
-
     unsigned char message = qrand() % (unsigned int)MessageType::COUNT;
     out << message;
 
-    clients[0]->write(block);
+    for(auto &socket : clients)
+        socket->write(block);
+}
+void tcpServer::startGame()
+{
+    qDebug() << "startgame button pressed... sending start game messages...";
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::GAME_BEGIN;
+
+    for(auto &socket : clients)
+        socket->write(block);
+
+}
+void tcpServer::stopGame()
+{
+    qDebug() << "stopgame button pressed... sending start game messages...";
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::GAME_STOPPED;
+
+    for(auto &socket : clients)
+        socket->write(block);
+}
+void tcpServer::gameOver()
+{
+
 }
 
 void tcpServer::readyReadTcp()
@@ -153,6 +215,15 @@ void tcpServer::readyReadTcp()
             case MessageType::TIMER_UPDATE :
                 qDebug() << "timer update";
                 break;
+            case MessageType::NOTIFY_SERVER_OF_PLAYER_NAME:
+                qDebug() << "notify of name...";
+                QString data;
+                inblock >> data;
+                std::string tempStr = data.toStdString();
+                strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), 20 );
+                break;
+
+
         }
         qDebug() << "after switch!";
 

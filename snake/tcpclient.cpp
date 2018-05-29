@@ -61,17 +61,29 @@ void tcpClient::sendTcpMessage()
     tcpSocket->write(block);
 }
 
+void tcpClient::sendName(std::string name)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_0);
+
+    out << (unsigned char)MessageType::NOTIFY_SERVER_OF_PLAYER_NAME;
+    out << QString::fromStdString(name);
+
+    tcpSocket->write(block);
+}
+
 void tcpClient::readyReadTcp()
 {
     qDebug() << "CLIENT READING TCP MESSAGE!";
     //this gets the address of the socket we are going to read from.
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender());
 
-    qDebug() << "Bytes available: " << clientSocket->bytesAvailable();
+
     while(clientSocket->bytesAvailable())
     {
         int dataSize = clientSocket->bytesAvailable();
-
+        qDebug() << "Bytes available: " << clientSocket->bytesAvailable();
         QByteArray buffer;
         buffer = clientSocket->read(dataSize);
 
@@ -83,16 +95,26 @@ void tcpClient::readyReadTcp()
 
         QDataStream inblock(&buffer, QIODevice::ReadOnly);
 
+        qDebug() << "buffer count before enum read: " << buffer.count();
+
         unsigned char mTypeChar;
         inblock >> mTypeChar;
         MessageType mType;
         mType = static_cast<MessageType>(mTypeChar);
 
-        qDebug() << (unsigned int)mType;
+        qDebug() << "buffer count after enum read: " << buffer.count();
 
+        qDebug() << "message type: " << (unsigned int)mType;
+        unsigned char tempID;
+
+        qDebug() << "before SWITCH STATEMENT!...bytes available: " << clientSocket->bytesAvailable();
         switch(mType){
             case MessageType::PLAYER_CONNECTED :
                 qDebug() << "player connected";
+                //QRgb tempColor;
+                inblock >> tempID;
+                //inblock >> tempColor;
+                qDebug() << "CLIENTid: " << tempID;// << "...color: " << tempColor;
                 break;
             case MessageType::PLAYER_DISCONNECTED :
                 qDebug() << "player disconnected";
@@ -111,12 +133,25 @@ void tcpClient::readyReadTcp()
                 break;
             case MessageType::GAME_BEGIN :
                 qDebug() << "game begun";
+                emit startGameSignal();
                 break;
             case MessageType::TIMER_UPDATE :
                 qDebug() << "timer update";
                 break;
+            case MessageType::GAME_STOPPED :
+                qDebug() << "game stopped";
+                emit stopGameSignal();
+                break;
+            case MessageType::PLAYER_ID_ASSIGNMENT:
+                qDebug() << "buffer count before assignment: " << buffer.count();
+                inblock >> tempID;
+                inblock.commitTransaction();
+                qDebug() << "my new ID is... " << tempID;
+                qDebug() << "buffer count after assignment: " << buffer.size();
+                break;
         }
-        qDebug() << "after switch!";
+        qDebug() << "after switch!...bytes available: " << clientSocket->bytesAvailable();
 
     }
 }
+

@@ -26,7 +26,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(bool isServer_, bool testingMode_ = false, QHostAddress serverAddress_ = QHostAddress("000.000.000.000"), QWidget *parent = 0);
+    explicit MainWindow(bool isServer_, std::string name_="", bool testingMode_ = false, QHostAddress serverAddress_ = QHostAddress("000.000.000.000"), QWidget *parent = 0);
 
     virtual void paintEvent(QPaintEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
@@ -34,6 +34,7 @@ public:
 
     bool isServer;
     bool testingMode;
+    std::string name;
     QHostAddress serverAddress;
 
     QThread *thread;
@@ -61,6 +62,9 @@ public slots:
     void receivedKillAcknowledgement();
     void clientConnectionSuccess();
     void clientConnectionFailure(QAbstractSocket::SocketError err);
+
+    void startGameSlot();
+    void stopGameSlot();
 private:
     Ui::MainWindow *ui;
 };

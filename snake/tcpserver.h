@@ -10,18 +10,24 @@
 #include <QKeyEvent>
 #include <vector>
 #include <QRgb>
+#include <QHash>
 
 class PlayerInfo
 {
+public:
     unsigned char playerID;
     QRgb color;
-    char name[20];
+    char name[21];
+
+    PlayerInfo();
+    PlayerInfo(unsigned char playerID_, QRgb color_, char* name_);
 };
 
 class GameInfo
 {
-    int width;
-    int height;
+public:
+    int width = 100;
+    int height = 100;
 
     bool enableSprint = true;
     bool enableBombs = true;
@@ -38,11 +44,14 @@ enum class MessageType : unsigned char
 {
     PLAYER_CONNECTED,
     PLAYER_DISCONNECTED,
+    PLAYER_ID_ASSIGNMENT,
+    NOTIFY_SERVER_OF_PLAYER_NAME,
     POSITION_UPDATE,
     BOMB_ACTIVATION,
     PLAYER_DIED,
     PLAYER_WON,
     GAME_BEGIN,
+    GAME_STOPPED,
     TIMER_UPDATE,
     GAME_INFO,
     COUNT //this is a cheeky way of accessing the number of enum entries in code.
@@ -59,6 +68,9 @@ public:
     int count = 0;
     unsigned int clientIDCounter = 0;
 
+    QHash<unsigned char, PlayerInfo> playerList;
+    QHash<QTcpSocket*, unsigned char> idList;
+
     std::vector<QTcpSocket *> clients;
 
     void keyPressEvent(QKeyEvent *event);
@@ -71,9 +83,11 @@ public slots:
     void readyReadTcp();
     void readyReadUdp();
     void clientDisconnected();
+    void startGame();
+    void gameOver();
+    void stopGame();
 private:
-    QDataStream in;
-    QDataStream out;
+    //QDataStream *out;
     QByteArray block;
 };
 

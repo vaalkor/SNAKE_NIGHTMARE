@@ -4,6 +4,10 @@
 #include "clientworker.h"
 #include <QThread>
 #include "serverclientselection.h"
+#include <QHash>
+#include <QDebug>
+#include "tcpserver.h"
+#include <QRgb>
 
 int main(int argc, char *argv[])
 {

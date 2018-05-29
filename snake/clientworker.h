@@ -21,7 +21,7 @@ public:
 
     bool isGameOver = false;
 
-    bool gameInPropress = false;
+    bool gameInProgress = false;
     bool kill = false;
 
     QMutex mutex;
@@ -29,7 +29,7 @@ public:
 
     short xPos = 50;
     short yPos = 50;
-    unsigned char clientID = 0;
+    unsigned char playerID = 0;
 
     bool inFocus = true;
 

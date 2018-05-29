@@ -9,6 +9,7 @@
 #include <QWaitCondition>
 #include "servercontrolwindow.h"
 #include "tcpserver.h"
+#include <QHash>
 
 class MainWindow;
 

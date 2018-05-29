@@ -7,6 +7,8 @@
 #include <QDataStream>
 #include <QKeyEvent>
 #include <QHostAddress>
+#include "tcpserver.h"
+#include <QHash>
 
 class tcpClient : public QObject
 {
@@ -18,14 +20,20 @@ public:
     QTcpSocket *tcpSocket;
     bool connected = false;
 
+    QHash<unsigned char, PlayerInfo> playerList;
+
     QHostAddress address;
 
     unsigned int clientID;
 
     void sendTcpMessage();
+    void sendName(std::string name);
 
 signals:
     void receivePositionSignal(short x, short y);
+    void startGameSignal();
+    void gameOverSignal();
+    void stopGameSignal();
 
 public slots:
     void sendPosition(short x, short y);

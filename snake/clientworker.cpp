@@ -28,74 +28,83 @@ void ClientWorker::process()
 
     while(!kill)
     {
-        if(inFocus)
+        if(gameInProgress)
         {
-            if(GetKeyState(VK_LEFT) & 0x8000)
+            if(inFocus)
             {
-                if(xDir != 1)
+                if(GetKeyState(VK_LEFT) & 0x8000)
                 {
-                    xDir = -1;
-                    yDir = 0;
+                    if(xDir != 1)
+                    {
+                        xDir = -1;
+                        yDir = 0;
+                    }
                 }
-            }
-            if(GetKeyState(VK_RIGHT) & 0x8000)
-            {
-                if(xDir != -1)
+                if(GetKeyState(VK_RIGHT) & 0x8000)
                 {
+                    if(xDir != -1)
+                    {
+                        xDir = 1;
+                        yDir = 0;
+                    }
+                }
+                if(GetKeyState(VK_UP) & 0x8000)
+                {
+                    if(yDir != 1)
+                    {
+                        yDir = -1;
+                        xDir = 0;
+                    }
+                }
+                if(GetKeyState(VK_DOWN) & 0x8000)
+                {
+                    if(yDir != -1)
+                    {
+                        yDir = 1;
+                        xDir = 0;
+                    }
+                }
+                if(GetKeyState(VK_ESCAPE) & 0x8000 || GetKeyState(VK_RETURN) & 0x8000)
+                {
+                    isGameOver = false;
+                    xPos = 50;
+                    yPos = 50;
                     xDir = 1;
                     yDir = 0;
                 }
             }
-            if(GetKeyState(VK_UP) & 0x8000)
-            {
-                if(yDir != 1)
-                {
-                    yDir = -1;
-                    xDir = 0;
-                }
-            }
-            if(GetKeyState(VK_DOWN) & 0x8000)
-            {
-                if(yDir != -1)
-                {
-                    yDir = 1;
-                    xDir = 0;
-                }
-            }
-            if(GetKeyState(VK_ESCAPE) & 0x8000 || GetKeyState(VK_RETURN) & 0x8000)
-            {
-                isGameOver = false;
-                xPos = 50;
-                yPos = 50;
-                xDir = 1;
-                yDir = 0;
-            }
-        }
 
-        if(isGameOver)
-        {
-            emit drawSignal();
-        }
-        else
-        {
-            short xPosNew = xPos + xDir;
-            short yPosNew = yPos + yDir;
-
-            if( xPosNew >= 100 || xPosNew < 0 || yPosNew < 0 || yPosNew >= 100)
+            if(isGameOver)
             {
-                isGameOver = true;
+                emit drawSignal();
             }
             else
             {
-                xPos = xPosNew;
-                yPos = yPosNew;
-                emit drawSignal();
-                emit sendPosition(xPos, yPos);
-            }
+                short xPosNew = xPos + xDir;
+                short yPosNew = yPos + yDir;
 
+                if( xPosNew >= 100 || xPosNew < 0 || yPosNew < 0 || yPosNew >= 100)
+                {
+                    isGameOver = true;
+                }
+                else
+                {
+                    xPos = xPosNew;
+                    yPos = yPosNew;
+                    emit drawSignal();
+                    emit sendPosition(xPos, yPos);
+                }
+
+            }
+            emit drawSignal();
+            Sleep(33);
         }
-        emit drawSignal();
-        Sleep(33);
+        else //if we go into here there is no longer a game in progress, and this thread will wait until the server tells the client to wake it up again.
+        {
+            mutex.lock();
+            waitCondition.wait(&mutex);
+            mutex.unlock();
+        }
 
     }
 

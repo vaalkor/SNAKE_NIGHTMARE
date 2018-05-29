@@ -5,10 +5,11 @@
 #include <QHostAddress>
 #include "servercontrolwindow.h"
 
-MainWindow::MainWindow(bool isServer_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
+MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     isServer(isServer_),
+    name(name_),
     testingMode(testingMode_),
     serverAddress(serverAddress_)
 {
@@ -24,6 +25,8 @@ MainWindow::MainWindow(bool isServer_, bool testingMode_, QHostAddress serverAdd
 
         QObject::connect(server, SIGNAL(receivePositionSignal(short,short)), this, SLOT(serverReceivePositionSlot(short,short)) );
         QObject::connect(&serverWorker->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
+        QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGame()));
+        QObject::connect(&serverWorker->serverWindow, SIGNAL(stopCurrentGameSignal()), server, SLOT(stopGame()));
 
     }else //is client
     {
@@ -43,17 +46,19 @@ void MainWindow::clientConnectionSuccess()
 
     clientWorker->moveToThread(thread);
 
-    QObject::connect(clientWorker, SIGNAL(sendPosition(short,short)), client, SLOT(sendPosition(short,short)));
-
-    QObject::connect(client, SIGNAL(receivePositionSignal(short,short)), this, SLOT(clientReceivePositionSlot(short,short)) );
-
     QObject::connect(this, &MainWindow::focusChanged, clientWorker, &ClientWorker::focusChanged); //for some reason this connection is not actually working.. oh well... what the fuck.. i dont get it son.. i dont get it...
 
-    QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
-
+    QObject::connect(clientWorker, SIGNAL(sendPosition(short,short)), client, SLOT(sendPosition(short,short)));
     QObject::connect(clientWorker, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
     QObject::connect(clientWorker, SIGNAL(sendKillAcknowledgement()), this, SLOT(receivedKillAcknowledgement()));
 
+    QObject::connect(client, SIGNAL(receivePositionSignal(short,short)), this, SLOT(clientReceivePositionSlot(short,short)) );
+    QObject::connect(client, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));
+    QObject::connect(client, SIGNAL(stopGameSignal()), this, SLOT(stopGameSlot()));
+
+    QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
+
+    client->sendName(name);
     thread->start();
 
     qDebug() << "client connection success";
@@ -191,4 +196,16 @@ void MainWindow::draw(bool endGame)
     }
 
     update();
+}
+
+void MainWindow::startGameSlot()
+{
+    qDebug() << "start game slot called";
+    clientWorker->gameInProgress = true;
+    clientWorker->waitCondition.wakeAll();
+}
+void MainWindow::stopGameSlot()
+{
+    qDebug() << "stop game slot called";
+    clientWorker->gameInProgress = false;
 }

@@ -20,6 +20,8 @@ public:
 
 signals:
     rejectSignal();
+    startGameSignal();
+    stopCurrentGameSignal();
 
 private slots:
     void on_startGameButton_clicked();
