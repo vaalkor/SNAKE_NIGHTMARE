@@ -125,7 +125,7 @@ void tcpServer::clientDisconnected()
             break;
         }
     }
-
+    emit updateNameListSignal();
     clientSocket->deleteLater();
 }
 
@@ -235,6 +235,7 @@ void tcpServer::readyReadTcp()
                 inblock >> data;
                 std::string tempStr = data.toStdString();
                 strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), 20 );
+                emit updateNameListSignal();
                 break;
 
 

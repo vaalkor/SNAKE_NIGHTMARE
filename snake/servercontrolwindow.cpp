@@ -1,12 +1,20 @@
 #include "servercontrolwindow.h"
 #include "ui_servercontrolwindow.h"
 #include <QDebug>
+#include <QAbstractListModel>
 
 ServerControlWindow::ServerControlWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ServerControlWindow)
 {
     ui->setupUi(this);
+}
+
+void ServerControlWindow::updateNameList(QHash<unsigned char, PlayerInfo> &hash)
+{
+    ui->playerListWidget->clear();
+    for(auto it=hash.begin(); it!=hash.end();it++)
+        ui->playerListWidget->addItem( QString::fromStdString( it->name) );
 }
 
 ServerControlWindow::~ServerControlWindow()

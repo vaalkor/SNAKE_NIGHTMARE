@@ -26,7 +26,7 @@
     <string>Players In Lobby</string>
    </property>
   </widget>
-  <widget class="QListView" name="playerListView">
+  <widget class="QListWidget" name="playerListWidget">
    <property name="geometry">
     <rect>
      <x>250</x>

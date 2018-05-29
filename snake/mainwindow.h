@@ -65,6 +65,7 @@ public slots:
 
     void startGameSlot();
     void stopGameSlot();
+    void updateNameListSlot();
 private:
     Ui::MainWindow *ui;
 };

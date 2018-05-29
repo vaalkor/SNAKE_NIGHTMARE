@@ -2,6 +2,8 @@
 #define SERVERCONTROLWINDOW_H
 
 #include <QDialog>
+#include <QHash>
+#include "tcpserver.h"
 
 namespace Ui {
 class ServerControlWindow;
@@ -15,6 +17,7 @@ public:
     explicit ServerControlWindow(QWidget *parent = 0);
 
     virtual void reject();
+    void updateNameList(QHash<unsigned char, PlayerInfo> &hash);
 
     ~ServerControlWindow();
 

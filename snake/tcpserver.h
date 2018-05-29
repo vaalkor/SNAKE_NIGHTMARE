@@ -84,6 +84,7 @@ public:
 
 signals:
     void receivePositionSignal(unsigned char clientID, short x, short y);
+    void updateNameListSignal();
 public slots:
     void handleConnection();
     void readyReadTcp();

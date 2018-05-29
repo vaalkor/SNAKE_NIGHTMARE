@@ -27,6 +27,7 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
         QObject::connect(&serverWorker->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
         QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGame()));
         QObject::connect(&serverWorker->serverWindow, SIGNAL(stopCurrentGameSignal()), server, SLOT(stopGame()));
+        QObject::connect(server, SIGNAL(updateNameListSignal()), this, SLOT(updateNameListSlot()));
 
     }else //is client
     {
@@ -93,7 +94,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "goodbye!";
     if(!isServer)
+    {
         clientWorker->kill = true;
+        clientWorker->waitCondition.wakeAll();
+    }
     else
         deleteLater();
 }
@@ -142,6 +146,11 @@ MainWindow::~MainWindow()
     }
     delete ui;
     delete thread;
+}
+
+void MainWindow::updateNameListSlot()
+{
+    serverWorker->serverWindow.updateNameList( server->playerList);
 }
 
 
