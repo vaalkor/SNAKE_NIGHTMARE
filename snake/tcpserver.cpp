@@ -127,7 +127,7 @@ void tcpServer::clientDisconnected()
             break;
         }
     }
-    emit updateNameListSignal();
+    emit updateServerUI();
     clientSocket->deleteLater();
 }
 
@@ -145,13 +145,19 @@ void tcpServer::sendTcpMessage()
 void tcpServer::startGame()
 {
     qDebug() << "startgame button pressed... sending start game messages...";
-    block.clear();
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << (unsigned char)MessageType::GAME_BEGIN;
+    if(info.numPlayers > 0)
+    {
+        block.clear();
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << (unsigned char)MessageType::GAME_BEGIN;
 
-    for(auto &socket : clients)
-        socket->write(block);
+        info.gameInProgress = true;
 
+        for(auto &socket : clients)
+            socket->write(block);
+
+        emit updateServerUI();
+    }
 }
 void tcpServer::stopGame()
 {
@@ -162,6 +168,8 @@ void tcpServer::stopGame()
 
     for(auto &socket : clients)
         socket->write(block);
+
+    emit updateServerUI();
 }
 void tcpServer::gameOver(unsigned char winnerID)
 {
@@ -173,6 +181,9 @@ void tcpServer::gameOver(unsigned char winnerID)
 
     for(auto &socket : clients)
         socket->write(block);
+
+    info.gameInProgress = false;
+    emit updateServerUI();
 }
 
 void tcpServer::sendDeathSignal(unsigned char clientID)
@@ -189,6 +200,45 @@ void tcpServer::sendDeathSignal(unsigned char clientID)
             socket->write(block);
             break;
         }
+}
+
+void tcpServer::checkWinConditions()
+{
+    int numAlive = 0;
+    unsigned char aliveID = 0; //the id of the survivor
+    for(auto it=playerList.begin(); it!=playerList.end(); it++)
+        if(it->alive)
+        {
+            numAlive++;
+            aliveID = it->playerID;
+        }
+
+    //important note: if there are no players alive the ID will be ZERO. this just signifies a draw as no players ever have their ID set to ZERO. The ID's start from 1.
+
+    if(info.numPlayers == 1)
+    {
+        if(numAlive == 0)
+            sendWinSignal( playerList.begin()->playerID );
+    }else
+    {
+        if(numAlive == 1 || numAlive == 0)
+        {
+            sendWinSignal( playerList[aliveID].playerID);
+        }
+    }
+}
+
+void tcpServer::sendWinSignal(unsigned char clientID)
+{
+    for(QTcpSocket* socket : clients)
+    {
+        block.clear();
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << (unsigned char)MessageType::PLAYER_WON;
+        out << clientID;
+        socket->write(block);
+    }
+
 }
 
 void tcpServer::readyReadTcp()
@@ -253,7 +303,7 @@ void tcpServer::readyReadTcp()
                 inblock >> data;
                 std::string tempStr = data.toStdString();
                 strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), 20 );
-                emit updateNameListSignal();
+                emit updateServerUI();
                 break;
 
 

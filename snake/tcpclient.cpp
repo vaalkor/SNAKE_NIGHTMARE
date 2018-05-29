@@ -136,6 +136,9 @@ void tcpClient::readyReadTcp()
                     break;
                 case MessageType::PLAYER_WON :
                     qDebug() << "player won";
+                    inblock << tempID;
+                    dataSize -= sizeof(unsigned char);
+                    qDebug() << "PLAYER " << tempID << "WON!!!!";
                     break;
                 case MessageType::GAME_BEGIN :
                     qDebug() << "game begun";
@@ -151,7 +154,7 @@ void tcpClient::readyReadTcp()
                 case MessageType::PLAYER_ID_ASSIGNMENT:
                     qDebug() << "buffer count before assignment: " << buffer.count();
                     inblock >> tempID;
-                    dataSize--;
+                    dataSize -= sizeof(unsigned char);
                     clientID = tempID;
                     break;
             }

@@ -28,7 +28,7 @@ MainWindow::MainWindow(bool isServer_, unsigned int seed_, std::string name_, bo
         QObject::connect(&serverWorker->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
         QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGame()));
         QObject::connect(&serverWorker->serverWindow, SIGNAL(stopCurrentGameSignal()), server, SLOT(stopGame()));
-        QObject::connect(server, SIGNAL(updateNameListSignal()), this, SLOT(updateNameListSlot()));
+        QObject::connect(server, SIGNAL(updateServerUI()), this, SLOT(updateServerUISlot()));
 
     }else //is client
     {
@@ -93,6 +93,7 @@ void MainWindow::serverReceivePositionSlot(unsigned char clientID, short x, shor
             serverWorker->tailArray[x][y] = clientID;
             server->sendPositionToAllClients(clientID, x, y);
         }
+        server->checkWinConditions();
 
         draw(false);
     }
@@ -169,9 +170,9 @@ MainWindow::~MainWindow()
     delete thread;
 }
 
-void MainWindow::updateNameListSlot()
+void MainWindow::updateServerUISlot()
 {
-    serverWorker->serverWindow.updateNameList( server->playerList);
+    serverWorker->serverWindow.updateUI( server->playerList, server->info);
 }
 
 

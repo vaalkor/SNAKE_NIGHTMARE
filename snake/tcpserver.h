@@ -43,6 +43,8 @@ public:
 
     short numPlayers = 0;
 
+    bool gameInProgress = false;
+
 };
 
 enum class MessageType : unsigned char
@@ -86,7 +88,7 @@ public:
 
 signals:
     void receivePositionSignal(unsigned char clientID, short x, short y);
-    void updateNameListSignal();
+    void updateServerUI();
 public slots:
     void handleConnection();
     void readyReadTcp();
@@ -96,6 +98,8 @@ public slots:
     void gameOver(unsigned char winnerID);
     void stopGame();
     void sendPositionToAllClients(unsigned char clientID, short x, short y);
+    void sendWinSignal(unsigned char clientID);
+    void checkWinConditions();
 private:
     //QDataStream *out;
     QByteArray block;

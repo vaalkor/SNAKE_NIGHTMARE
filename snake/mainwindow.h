@@ -66,7 +66,7 @@ public slots:
 
     void startGameSlot();
     void stopGameSlot();
-    void updateNameListSlot();
+    void updateServerUISlot();
 
     void handlePlayerDeath();
 private:

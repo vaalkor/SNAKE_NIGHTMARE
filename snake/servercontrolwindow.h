@@ -17,7 +17,7 @@ public:
     explicit ServerControlWindow(QWidget *parent = 0);
 
     virtual void reject();
-    void updateNameList(QHash<unsigned char, PlayerInfo> &hash);
+    void updateUI(QHash<unsigned char, PlayerInfo> &hash, GameInfo &info);
 
     ~ServerControlWindow();
 
