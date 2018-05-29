@@ -90,20 +90,11 @@ void ClientWorker::process()
             }
             else
             {
-                short xPosNew = xPos + xDir;
-                short yPosNew = yPos + yDir;
+                xPos += xDir;
+                yPos += yDir;
 
-                if( xPosNew >= 100 || xPosNew < 0 || yPosNew < 0 || yPosNew >= 100)
-                {
-                    isGameOver = true;
-                }
-                else
-                {
-                    xPos = xPosNew;
-                    yPos = yPosNew;
-                    emit drawSignal();
-                    emit sendPosition(xPos, yPos);
-                }
+                emit drawSignal();
+                emit sendPosition(xPos, yPos);
 
             }
             timeSinceLastDirectionChange += 33;

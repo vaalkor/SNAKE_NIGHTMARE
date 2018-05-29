@@ -11,6 +11,8 @@
 #include <vector>
 #include <QRgb>
 #include <QHash>
+#include <chrono>
+#include <random>
 
 #define MAX_NUM_PLAYERS 20
 
@@ -60,6 +62,7 @@ enum class MessageType : unsigned char
     GAME_BEGIN,
     GAME_STOPPED,
     TIMER_UPDATE,
+    START_POSITION,
     GAME_INFO,
     COUNT //this is a cheeky way of accessing the number of enum entries in code.
 };
@@ -77,6 +80,11 @@ public:
     int count = 0;
     unsigned int clientIDCounter = 0;
 
+    unsigned char playerPositionGrid[4][5];
+
+    std::mt19937 gen;
+    std::uniform_real_distribution<> dist;
+
     QHash<unsigned char, PlayerInfo> playerList;
     QHash<QTcpSocket*, unsigned char> idList;
 
@@ -85,10 +93,12 @@ public:
     void keyPressEvent(QKeyEvent *event);
     void sendTcpMessage();
     void sendDeathSignal(unsigned char clientID);
+    void calculateStartingPosition(short &x, short &y);
 
 signals:
     void receivePositionSignal(unsigned char clientID, short x, short y);
     void updateServerUI();
+    void startGameSignal();
 public slots:
     void handleConnection();
     void readyReadTcp();

@@ -136,8 +136,9 @@ void tcpClient::readyReadTcp()
                     break;
                 case MessageType::PLAYER_WON :
                     qDebug() << "player won";
-                    inblock << tempID;
+                    inblock >> tempID;
                     dataSize -= sizeof(unsigned char);
+                    emit gameOverSignal(tempID);
                     qDebug() << "PLAYER " << tempID << "WON!!!!";
                     break;
                 case MessageType::GAME_BEGIN :
@@ -157,6 +158,13 @@ void tcpClient::readyReadTcp()
                     dataSize -= sizeof(unsigned char);
                     clientID = tempID;
                     break;
+                case MessageType::START_POSITION:
+                    short x,y;
+                    inblock >> x;
+                    inblock >> y;
+                    dataSize -= sizeof(unsigned char); dataSize -= sizeof(unsigned char);
+                    emit receiveStartingPosition(x, y);
+
             }
             qDebug() << "after switch!...bytes available: " << clientSocket->bytesAvailable();
         }

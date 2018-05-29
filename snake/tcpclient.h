@@ -32,9 +32,10 @@ public:
 signals:
     void receivePositionSignal(unsigned char clientID, short x, short y);
     void startGameSignal();
-    void gameOverSignal();
+    void gameOverSignal(unsigned char clientID);
     void stopGameSignal();
     void playerDiedSignal();
+    void receiveStartingPosition(short x, short y);
 
 public slots:
     void sendPosition(short x, short y);

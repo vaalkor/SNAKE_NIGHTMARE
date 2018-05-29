@@ -29,8 +29,11 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
     clientUdp = new QUdpSocket(this);
     clientUdp->bind(6666);
 
-    //out = new QDataStream(&block, QIODevice::WriteOnly);
-    //out->setVersion(QDataStream::Qt_4_0);
+    std::default_random_engine rd( std::chrono::high_resolution_clock::now().time_since_epoch().count() );
+    gen = std::mt19937(rd());
+    dist = std::uniform_real_distribution<>(0.0,1.0);
+
+    memset(playerPositionGrid, 0, sizeof(playerPositionGrid));
 
     QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
     QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(readyReadUdp()));
@@ -75,39 +78,63 @@ void tcpServer::sendPositionToAllClients(unsigned char clientID, short x, short 
     }
 }
 
+void tcpServer::calculateStartingPosition(short &x, short &y)
+{
+    //THIS WILL LIVELOCK IF YOU HAVE MORE THAN THE MAX PLAYERS!!!!!!!!!!!!!!! BEWARE!!!
+    //CHANGE IT TO BE A BIT MORE ELEGENT. JUST GETTING IT WORKING FOR NOW THOUGH SON.
+    while(true)
+    {
+        short tempX, tempY;
+        tempX = dist(gen)*4;
+        tempY = dist(gen)*5;
+        if(!playerPositionGrid[tempX][tempY])
+        {
+            playerPositionGrid[tempX][tempY] = 1;
+            qDebug() << "starting pos server: " << tempX << "/" << tempY;
+            x = (0.15 + (tempX/(float)4)*0.7) * info.width;
+            y = (0.15 + (tempY/(float)5)*0.7) * info.height;
+            return;
+        }
+    }
+}
+
 //this is only called when a NEW tcp connection is made. Clients make these once when they join.
 void tcpServer::handleConnection()
 {
-    while(server->hasPendingConnections())
+    if(info.numPlayers < MAX_NUM_PLAYERS)
     {
-        QTcpSocket *tempClient = server->nextPendingConnection();
-        clients.push_back( tempClient );
+        while(server->hasPendingConnections())
+        {
+            QTcpSocket *tempClient = server->nextPendingConnection();
+            clients.push_back( tempClient );
 
-        tempClient->setSocketOption(QAbstractSocket::LowDelayOption,1);
+            tempClient->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
-        QObject::connect(tempClient, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
-        QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyReadTcp()));
+            QObject::connect(tempClient, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
+            QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyReadTcp()));
 
-        //work out a new id for this client.
-        unsigned char tempID = 1; //this starts at 1 so I can just use 0 for having NO color in an array spot. a bit dirty. whatever.
-        for(auto it=playerList.begin(); it!=playerList.end(); it++)
-            for(auto it2=playerList.begin(); it2!=playerList.end(); it2++)
-                if( it2->playerID == tempID)
-                    tempID++;
+            //work out a new id for this client.
+            unsigned char tempID = 1; //this starts at 1 so I can just use 0 for having NO color in an array spot. a bit dirty. whatever.
+            for(auto it=playerList.begin(); it!=playerList.end(); it++)
+                for(auto it2=playerList.begin(); it2!=playerList.end(); it2++)
+                    if( it2->playerID == tempID)
+                        tempID++;
 
-        playerList[tempID] = PlayerInfo(tempID, playerColors[tempID], "");
-        idList[tempClient] = tempID;
-        qDebug() << "SERVER:...id: " << tempID << "...color: " << playerList[tempID].color;
+            playerList[tempID] = PlayerInfo(tempID, playerColors[tempID], "");
+            idList[tempClient] = tempID;
 
-        //inform that person of their new ID...
-        block.clear();
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out << (unsigned char)MessageType::PLAYER_ID_ASSIGNMENT;
-        out << tempID;
-        tempClient->write(block);
+            //inform that person of their new ID and their starting position...
+            block.clear();
+            QDataStream out(&block, QIODevice::WriteOnly);
 
-        info.numPlayers++;
+            out << (unsigned char)MessageType::PLAYER_ID_ASSIGNMENT;
+            out << tempID;
+            tempClient->write(block);
+
+            info.numPlayers++;
+        }
     }
+
 }
 
 void tcpServer::clientDisconnected()
@@ -147,6 +174,28 @@ void tcpServer::startGame()
     qDebug() << "startgame button pressed... sending start game messages...";
     if(info.numPlayers > 0)
     {
+        //CALCULATE STARTING POSITIONS AND WRITE THEM TO THE APPROPRIATE CLIENTS
+        memset(playerPositionGrid, 0, sizeof(playerPositionGrid)); //set the positions to blank.
+
+        for(auto it=playerList.begin(); it!=playerList.end(); it++)
+            it->alive = true;
+
+        emit startGameSignal(); //this will have to be changed when we presumabely change to having a server without serverworker... and just have one thing that EXTENDS TCPSERVER!!!! FUCKING NICE...
+
+        info.gameInProgress = true;
+
+        for(auto &socket : clients)
+        {
+            short x,y;
+            calculateStartingPosition(x,y);
+            qDebug() << "starting position: " << x << "..." << y;
+            block.clear();
+            QDataStream out(&block, QIODevice::WriteOnly);
+            out << (unsigned char)MessageType::START_POSITION;
+            out << x << y;
+            socket->write(block);
+        }
+
         block.clear();
         QDataStream out(&block, QIODevice::WriteOnly);
         out << (unsigned char)MessageType::GAME_BEGIN;
@@ -204,32 +253,37 @@ void tcpServer::sendDeathSignal(unsigned char clientID)
 
 void tcpServer::checkWinConditions()
 {
-    int numAlive = 0;
-    unsigned char aliveID = 0; //the id of the survivor
-    for(auto it=playerList.begin(); it!=playerList.end(); it++)
-        if(it->alive)
-        {
-            numAlive++;
-            aliveID = it->playerID;
-        }
-
-    //important note: if there are no players alive the ID will be ZERO. this just signifies a draw as no players ever have their ID set to ZERO. The ID's start from 1.
-
-    if(info.numPlayers == 1)
+    if(info.gameInProgress)
     {
-        if(numAlive == 0)
-            sendWinSignal( playerList.begin()->playerID );
-    }else
-    {
-        if(numAlive == 1 || numAlive == 0)
+        int numAlive = 0;
+        unsigned char aliveID = 0; //the id of the survivor
+        for(auto it=playerList.begin(); it!=playerList.end(); it++)
+            if(it->alive)
+            {
+                numAlive++;
+                aliveID = it->playerID;
+            }
+
+        //important note: if there are no players alive the ID will be ZERO. this just signifies a draw as no players ever have their ID set to ZERO. The ID's start from 1.
+
+        if(info.numPlayers == 1)
         {
-            sendWinSignal( playerList[aliveID].playerID);
+            if(numAlive == 0)
+                sendWinSignal( playerList.begin()->playerID );
+        }else
+        {
+            if(numAlive == 1 || numAlive == 0)
+            {
+                sendWinSignal( playerList[aliveID].playerID);
+            }
         }
     }
+
 }
 
 void tcpServer::sendWinSignal(unsigned char clientID)
 {
+    info.gameInProgress = false;
     for(QTcpSocket* socket : clients)
     {
         block.clear();

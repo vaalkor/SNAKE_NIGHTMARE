@@ -63,9 +63,11 @@ public slots:
     void receivedKillAcknowledgement();
     void clientConnectionSuccess();
     void clientConnectionFailure(QAbstractSocket::SocketError err);
+    void clientReceiveStartPosition(short x, short y);
 
     void startGameSlot();
     void stopGameSlot();
+    void gameOverSlot(unsigned char clientID);
     void updateServerUISlot();
 
     void handlePlayerDeath();

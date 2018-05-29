@@ -29,6 +29,7 @@ MainWindow::MainWindow(bool isServer_, unsigned int seed_, std::string name_, bo
         QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGame()));
         QObject::connect(&serverWorker->serverWindow, SIGNAL(stopCurrentGameSignal()), server, SLOT(stopGame()));
         QObject::connect(server, SIGNAL(updateServerUI()), this, SLOT(updateServerUISlot()));
+        QObject::connect(server, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));
 
     }else //is client
     {
@@ -58,6 +59,8 @@ void MainWindow::clientConnectionSuccess()
     QObject::connect(client, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));
     QObject::connect(client, SIGNAL(stopGameSignal()), this, SLOT(stopGameSlot()));
     QObject::connect(client, SIGNAL(playerDiedSignal()), this, SLOT(handlePlayerDeath()));
+    QObject::connect(client, SIGNAL(receiveStartingPosition(short,short)), this, SLOT(clientReceiveStartPosition(short,short)));
+    QObject::connect(client, SIGNAL(gameOverSignal(unsigned char)), this, SLOT(gameOverSlot(unsigned char)));
 
     QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
 
@@ -83,7 +86,7 @@ void MainWindow::serverReceivePositionSlot(unsigned char clientID, short x, shor
 {
     if(server->playerList[clientID].alive)
     {
-        if(serverWorker->tailArray[x][y])
+        if(serverWorker->tailArray[x][y] || x < 0 || x >= 100 || y < 0 || y >= 100) //currently we are storing thing shere.. but... info is in tcpserver innit.. move things around later on.
         {
             server->sendDeathSignal(clientID);
             server->playerList[clientID].alive = false;
@@ -100,6 +103,12 @@ void MainWindow::serverReceivePositionSlot(unsigned char clientID, short x, shor
 
 }
 
+void MainWindow::clientReceiveStartPosition(short x, short y)
+{
+    clientWorker->xPos = x;
+    clientWorker->yPos = y;
+}
+
 void MainWindow::clientReceivePositionSlot(unsigned char clientID, short x, short y)
 {
     clientWorker->tailArray[x][y] = clientID;
@@ -109,7 +118,6 @@ void MainWindow::paintEvent(QPaintEvent *event)
 {
     QPainter canvasPainter(this);
     canvasPainter.drawImage(this->rect(), image, image.rect());
-
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -227,11 +235,25 @@ void MainWindow::draw(bool endGame)
     update();
 }
 
+void MainWindow::gameOverSlot(unsigned char clientID)
+{
+    clientWorker->gameInProgress = false;
+}
+
 void MainWindow::startGameSlot()
 {
     qDebug() << "start game slot called";
-    clientWorker->gameInProgress = true;
-    clientWorker->waitCondition.wakeAll();
+    if(!isServer)
+    {
+        clientWorker->gameInProgress = true;
+        clientWorker->waitCondition.wakeAll();
+        memset(clientWorker->tailArray, 0, sizeof(clientWorker->tailArray));
+    }
+    else
+    {
+        memset(serverWorker->tailArray, 0, sizeof(serverWorker->tailArray));
+    }
+
 }
 void MainWindow::stopGameSlot()
 {
