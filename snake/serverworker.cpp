@@ -12,17 +12,18 @@
 
 ServerWorker::ServerWorker(QObject *parent) : QObject(parent)
 {
-    memset(tailArray, 0, sizeof(bool)*100*100);
+    memset(tailArray, 0, sizeof(unsigned char)*100*100);
 
     serverWindow.show();
 }
 
 bool ServerWorker::checkCollisions()
 {
-    if( tailArray[xPos][yPos] )
+    /*if( tailArray[xPos][yPos] )
         return true;
     else
-        return false;
+        return false;*/
+    return false;
 }
 
 void ServerWorker::process()

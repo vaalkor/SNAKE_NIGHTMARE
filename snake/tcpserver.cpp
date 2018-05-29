@@ -4,6 +4,15 @@
 #include <QTcpSocket>
 #include <iostream>
 #include <QAbstractSocket>
+#include <QRgb>
+
+
+const std::vector<QRgb> playerColors
+  = {qRgb(0,0,0) /* (0,0,0) is the background color.*/
+    ,qRgb(230,25,75),   qRgb(60,180,75),    qRgb(255,225,25),   qRgb(0,130,200),    qRgb(245,130,48)
+    ,qRgb(145,30,180),  qRgb(70,240,240),   qRgb(240,50,230),   qRgb(210,245,60),   qRgb(250,190,190)
+    ,qRgb(0,128,128),   qRgb(230,190,255),  qRgb(170,110,40),   qRgb(255,250,200),  qRgb(128,0,0)
+    ,qRgb(170,255,195), qRgb(128,128,0),    qRgb(255,215,180),  qRgb(0,0,128),      qRgb(128,128,128)	};
 
 PlayerInfo::PlayerInfo(){} //if I don't have a defauly constructor QHash complains at me.. so that's why this is here.
 
@@ -42,17 +51,20 @@ void tcpServer::readyReadUdp()
         QByteArray datagram;
         datagram.resize(clientUdp->pendingDatagramSize());
         clientUdp->readDatagram(datagram.data(), datagram.size());
+        unsigned char clientID;
         short x,y;
         QDataStream inblock(&datagram, QIODevice::ReadOnly);
+        inblock >> clientID;
         inblock >> x;
         inblock >> y;
         //qDebug() << x << "/" << y;
-        emit receivePositionSignal(x,y);
+        emit receivePositionSignal(clientID, x,y);
 
         for(const QTcpSocket *client : clients)
         {
             QByteArray buffer;
             QDataStream stream(&buffer, QIODevice::WriteOnly); //THIS IS VERY VERY VERY TEMPORARY AT THE MOMENT BOYS. VERY TEMPORARY INDEED... ITS SHIT ATM...
+            stream << clientID;
             stream << x;
             stream << y;
             clientUdp->writeDatagram(buffer.data(), buffer.size(), client->peerAddress(), 1234);
@@ -81,7 +93,7 @@ void tcpServer::handleConnection()
                 if( it2->playerID == tempID)
                     tempID++;
 
-        playerList[tempID] = PlayerInfo(tempID, qRgb(qrand()%256,qrand()%256,qrand()%256), "");
+        playerList[tempID] = PlayerInfo(tempID, playerColors[tempID], "");
         idList[tempClient] = tempID;
         qDebug() << "SERVER:...id: " << tempID << "...color: " << playerList[tempID].color;
 
@@ -92,15 +104,7 @@ void tcpServer::handleConnection()
         out << tempID;
         tempClient->write(block);
 
-        for(auto &client: clients)
-        {
-            block.clear();
-            QDataStream out(&block, QIODevice::WriteOnly);
-            out << (unsigned char)MessageType::PLAYER_CONNECTED;
-            out << tempID;
-            out << playerList[tempID].color;
-            client->write(block);
-        }
+        info.numPlayers++;
     }
 }
 
@@ -109,12 +113,15 @@ void tcpServer::clientDisconnected()
     qDebug() << "Client disconnected.";
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender()); //this will apparently give us the pointer to the socket that was disconnected mate...
 
+    playerList.remove( idList[clientSocket] );
+    idList.remove(clientSocket);
 
     for(auto it=clients.begin(); it < clients.end(); it++)
     {
         if(clientSocket == *it)
         {
             clients.erase(it);
+            info.numPlayers--;
             break;
         }
     }
@@ -154,9 +161,16 @@ void tcpServer::stopGame()
     for(auto &socket : clients)
         socket->write(block);
 }
-void tcpServer::gameOver()
+void tcpServer::gameOver(unsigned char winnerID)
 {
+    qDebug() << "gameOver! player with ID: " << winnerID << " wins!";
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::PLAYER_WON;
+    out << winnerID;
 
+    for(auto &socket : clients)
+        socket->write(block);
 }
 
 void tcpServer::readyReadTcp()

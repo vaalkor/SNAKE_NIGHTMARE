@@ -33,7 +33,7 @@ public:
 
     bool inFocus = true;
 
-    bool tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
+    unsigned char tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
     //bool **tailArray;
 
     void drawSquare(short x, short y, QRgb color);

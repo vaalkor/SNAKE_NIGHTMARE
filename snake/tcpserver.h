@@ -12,6 +12,10 @@
 #include <QRgb>
 #include <QHash>
 
+#define MAX_NUM_PLAYERS 20
+
+extern const std::vector<QRgb> playerColors;
+
 class PlayerInfo
 {
 public:
@@ -63,6 +67,8 @@ class tcpServer : public QObject
 public:
     explicit tcpServer(QObject *parent = nullptr);
 
+    GameInfo info;
+
     QTcpServer *server;
     QUdpSocket *clientUdp = NULL;
     int count = 0;
@@ -77,14 +83,14 @@ public:
     void sendTcpMessage();
 
 signals:
-    void receivePositionSignal(short x, short y);
+    void receivePositionSignal(unsigned char clientID, short x, short y);
 public slots:
     void handleConnection();
     void readyReadTcp();
     void readyReadUdp();
     void clientDisconnected();
     void startGame();
-    void gameOver();
+    void gameOver(unsigned char winnerID);
     void stopGame();
 private:
     //QDataStream *out;

@@ -56,8 +56,8 @@ public:
 signals:
     focusChanged(bool value);
 public slots:
-    void serverReceivePositionSlot(short x, short y);
-    void clientReceivePositionSlot(short x, short y);
+    void serverReceivePositionSlot(unsigned char clientID, short x, short y);
+    void clientReceivePositionSlot(unsigned char clientID, short x, short y);
     void drawSlot();
     void receivedKillAcknowledgement();
     void clientConnectionSuccess();

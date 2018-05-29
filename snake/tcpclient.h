@@ -24,13 +24,13 @@ public:
 
     QHostAddress address;
 
-    unsigned int clientID;
+    unsigned char clientID;
 
     void sendTcpMessage();
     void sendName(std::string name);
 
 signals:
-    void receivePositionSignal(short x, short y);
+    void receivePositionSignal(unsigned char clientID, short x, short y);
     void startGameSignal();
     void gameOverSignal();
     void stopGameSignal();

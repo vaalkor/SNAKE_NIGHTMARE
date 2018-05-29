@@ -30,14 +30,12 @@ public:
     QMutex mutex;
     QWaitCondition waitCondition;
 
-    int xPos = 0;
-    int yPos = 0;
     bool checkCollisions();
 
     void drawSquare(short x, short y, QRgb color);
     void draw(bool endGame);
 
-    bool tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
+    unsigned char tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
 
 signals:
 

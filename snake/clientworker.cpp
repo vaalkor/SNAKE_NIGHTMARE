@@ -17,7 +17,7 @@ ClientWorker::ClientWorker(QObject *parent) : QObject(parent)
         tailArray[i] = static_cast<bool*>( malloc(sizeof(bool)*100) );
         memset(tailArray[i], 0, sizeof(bool)*100);
     }*/
-    memset(tailArray, 0, sizeof(bool)*100*100);
+    memset(tailArray, 0, sizeof(unsigned char)*100*100);
 }
 
 void ClientWorker::process()

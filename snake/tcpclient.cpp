@@ -23,11 +23,13 @@ void tcpClient::readyReadUdp()
         QByteArray datagram;
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size());
+        unsigned char clientID;
         short x,y;
         QDataStream inblock(&datagram, QIODevice::ReadOnly);
+        inblock >> clientID;
         inblock >> x;
         inblock >> y;
-        emit receivePositionSignal(x,y);
+        emit receivePositionSignal(clientID,x,y);
     }
 }
 
@@ -41,6 +43,7 @@ void tcpClient::sendPosition(short x, short y)
 {
     QByteArray buffer;
     QDataStream stream(&buffer, QIODevice::WriteOnly);
+    stream << clientID;
     stream << x;
     stream << y;
 
@@ -114,12 +117,8 @@ void tcpClient::readyReadTcp()
             switch(mType){
                 case MessageType::PLAYER_CONNECTED :
                     qDebug() << "player connected";
-                    QRgb tempColor;
                     inblock >> tempID;
-                    inblock >> tempColor;
                     dataSize -= sizeof(unsigned char);
-                    dataSize -= sizeof(QRgb);
-                    playerList[tempID].color = tempColor;
                     playerList[tempID].playerID = tempID; //this is totally useless btw...
                     break;
                 case MessageType::PLAYER_DISCONNECTED :
@@ -152,8 +151,7 @@ void tcpClient::readyReadTcp()
                     qDebug() << "buffer count before assignment: " << buffer.count();
                     inblock >> tempID;
                     dataSize--;
-                    qDebug() << "my new ID is... " << tempID;
-                    qDebug() << "buffer count after assignment: " << buffer.length();
+                    clientID = tempID;
                     break;
             }
             qDebug() << "after switch!...bytes available: " << clientSocket->bytesAvailable();

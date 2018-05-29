@@ -23,7 +23,7 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
         server = new tcpServer();
         serverWorker = new ServerWorker();
 
-        QObject::connect(server, SIGNAL(receivePositionSignal(short,short)), this, SLOT(serverReceivePositionSlot(short,short)) );
+        QObject::connect(server, SIGNAL(receivePositionSignal(unsigned char, short,short)), this, SLOT(serverReceivePositionSlot(unsigned char, short,short)) );
         QObject::connect(&serverWorker->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
         QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGame()));
         QObject::connect(&serverWorker->serverWindow, SIGNAL(stopCurrentGameSignal()), server, SLOT(stopGame()));
@@ -52,7 +52,7 @@ void MainWindow::clientConnectionSuccess()
     QObject::connect(clientWorker, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
     QObject::connect(clientWorker, SIGNAL(sendKillAcknowledgement()), this, SLOT(receivedKillAcknowledgement()));
 
-    QObject::connect(client, SIGNAL(receivePositionSignal(short,short)), this, SLOT(clientReceivePositionSlot(short,short)) );
+    QObject::connect(client, SIGNAL(receivePositionSignal(unsigned char,short,short)), this, SLOT(clientReceivePositionSlot(unsigned char, short,short)) );
     QObject::connect(client, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));
     QObject::connect(client, SIGNAL(stopGameSignal()), this, SLOT(stopGameSlot()));
 
@@ -71,17 +71,15 @@ void MainWindow::clientConnectionFailure(QAbstractSocket::SocketError err)
         deleteLater();
 }
 
-void MainWindow::serverReceivePositionSlot(short x, short y)
+void MainWindow::serverReceivePositionSlot(unsigned char clientID, short x, short y)
 {
-    serverWorker->xPos = x;
-    serverWorker->yPos = y;
-    serverWorker->tailArray[x][y] = true;
+    serverWorker->tailArray[x][y] = clientID;
     draw(false);
 }
 
-void MainWindow::clientReceivePositionSlot(short x, short y)
+void MainWindow::clientReceivePositionSlot(unsigned char clientID, short x, short y)
 {
-    clientWorker->tailArray[x][y] = true;
+    clientWorker->tailArray[x][y] = clientID;
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
@@ -187,9 +185,9 @@ void MainWindow::draw(bool endGame)
         for(unsigned int i=0; i<100; i++)
             for(unsigned int j=0; j<100; j++)
                 if(isServer && serverWorker->tailArray[i][j])
-                    drawSquare(i,j,qRgb(255,255,255));
+                    drawSquare(i,j, playerColors[ serverWorker->tailArray[i][j] ]);
                 else if(!isServer && clientWorker->tailArray[i][j])
-                    drawSquare(i,j,qRgb(255,255,255));
+                    drawSquare(i,j,playerColors[ clientWorker->tailArray[i][j] ]);
 
         if(!isServer)
             drawSquare(clientWorker->xPos, clientWorker->yPos, qRgb(255,255,255));
