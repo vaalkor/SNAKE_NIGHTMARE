@@ -95,62 +95,71 @@ void tcpClient::readyReadTcp()
 
         QDataStream inblock(&buffer, QIODevice::ReadOnly);
 
-        qDebug() << "buffer count before enum read: " << buffer.count();
+        while(dataSize)
+        {
+            qDebug() << "buffer count before enum read: " << buffer.count();
 
-        unsigned char mTypeChar;
-        inblock >> mTypeChar;
-        MessageType mType;
-        mType = static_cast<MessageType>(mTypeChar);
+            unsigned char mTypeChar;
+            inblock >> mTypeChar;
+            MessageType mType;
+            mType = static_cast<MessageType>(mTypeChar);
+            dataSize--;
 
-        qDebug() << "buffer count after enum read: " << buffer.count();
+            qDebug() << "buffer count after enum read: " << buffer.count();
 
-        qDebug() << "message type: " << (unsigned int)mType;
-        unsigned char tempID;
+            qDebug() << "message type: " << (unsigned int)mType;
+            unsigned char tempID;
 
-        qDebug() << "before SWITCH STATEMENT!...bytes available: " << clientSocket->bytesAvailable();
-        switch(mType){
-            case MessageType::PLAYER_CONNECTED :
-                qDebug() << "player connected";
-                //QRgb tempColor;
-                inblock >> tempID;
-                //inblock >> tempColor;
-                qDebug() << "CLIENTid: " << tempID;// << "...color: " << tempColor;
-                break;
-            case MessageType::PLAYER_DISCONNECTED :
-                qDebug() << "player disconnected";
-                break;
-            case MessageType::POSITION_UPDATE :
-                qDebug() << "player update";
-                break;
-            case MessageType::BOMB_ACTIVATION :
-                qDebug() << "bomb activation";
-                break;
-            case MessageType::PLAYER_DIED :
-                qDebug() << "player died";
-                break;
-            case MessageType::PLAYER_WON :
-                qDebug() << "player won";
-                break;
-            case MessageType::GAME_BEGIN :
-                qDebug() << "game begun";
-                emit startGameSignal();
-                break;
-            case MessageType::TIMER_UPDATE :
-                qDebug() << "timer update";
-                break;
-            case MessageType::GAME_STOPPED :
-                qDebug() << "game stopped";
-                emit stopGameSignal();
-                break;
-            case MessageType::PLAYER_ID_ASSIGNMENT:
-                qDebug() << "buffer count before assignment: " << buffer.count();
-                inblock >> tempID;
-                inblock.commitTransaction();
-                qDebug() << "my new ID is... " << tempID;
-                qDebug() << "buffer count after assignment: " << buffer.size();
-                break;
+            qDebug() << "before SWITCH STATEMENT!...bytes available: " << clientSocket->bytesAvailable();
+            switch(mType){
+                case MessageType::PLAYER_CONNECTED :
+                    qDebug() << "player connected";
+                    QRgb tempColor;
+                    inblock >> tempID;
+                    inblock >> tempColor;
+                    dataSize -= sizeof(unsigned char);
+                    dataSize -= sizeof(QRgb);
+                    playerList[tempID].color = tempColor;
+                    playerList[tempID].playerID = tempID; //this is totally useless btw...
+                    break;
+                case MessageType::PLAYER_DISCONNECTED :
+                    qDebug() << "player disconnected";
+                    break;
+                case MessageType::POSITION_UPDATE :
+                    qDebug() << "player update";
+                    break;
+                case MessageType::BOMB_ACTIVATION :
+                    qDebug() << "bomb activation";
+                    break;
+                case MessageType::PLAYER_DIED :
+                    qDebug() << "player died";
+                    break;
+                case MessageType::PLAYER_WON :
+                    qDebug() << "player won";
+                    break;
+                case MessageType::GAME_BEGIN :
+                    qDebug() << "game begun";
+                    emit startGameSignal();
+                    break;
+                case MessageType::TIMER_UPDATE :
+                    qDebug() << "timer update";
+                    break;
+                case MessageType::GAME_STOPPED :
+                    qDebug() << "game stopped";
+                    emit stopGameSignal();
+                    break;
+                case MessageType::PLAYER_ID_ASSIGNMENT:
+                    qDebug() << "buffer count before assignment: " << buffer.count();
+                    inblock >> tempID;
+                    dataSize--;
+                    qDebug() << "my new ID is... " << tempID;
+                    qDebug() << "buffer count after assignment: " << buffer.length();
+                    break;
+            }
+            qDebug() << "after switch!...bytes available: " << clientSocket->bytesAvailable();
         }
-        qDebug() << "after switch!...bytes available: " << clientSocket->bytesAvailable();
+
+
 
     }
 }

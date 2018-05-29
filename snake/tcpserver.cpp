@@ -98,7 +98,7 @@ void tcpServer::handleConnection()
             QDataStream out(&block, QIODevice::WriteOnly);
             out << (unsigned char)MessageType::PLAYER_CONNECTED;
             out << tempID;
-            //out << playerList[tempID].color;
+            out << playerList[tempID].color;
             client->write(block);
         }
     }
