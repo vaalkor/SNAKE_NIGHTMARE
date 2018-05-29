@@ -5,10 +5,11 @@
 #include <QHostAddress>
 #include "servercontrolwindow.h"
 
-MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
+MainWindow::MainWindow(bool isServer_, unsigned int seed_, std::string name_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     isServer(isServer_),
+    seed(seed_),
     name(name_),
     testingMode(testingMode_),
     serverAddress(serverAddress_)
@@ -31,7 +32,7 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
 
     }else //is client
     {
-        clientWorker = new ClientWorker();
+        clientWorker = new ClientWorker(testingMode, seed);
 
         client = new tcpClient(serverAddress);
         QObject::connect(client->tcpSocket, SIGNAL(connected()), this, SLOT(clientConnectionSuccess()));

@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <tcpserver.h>
+#include <random>
 
 class MainWindow;
 
@@ -15,11 +16,20 @@ class ClientWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit ClientWorker(QObject *parent = nullptr);
+    explicit ClientWorker(bool testingMode_=false, unsigned int seed_=0, QObject *parent = nullptr);
 
     GameInfo gameInfo;
 
     bool isGameOver = false;
+    bool testingMode = false;
+
+    int xDirDirections[4] = {0, 1, 0, -1};
+    int yDirDirections[4] = {-1, 0, 1, 0};
+    int currentDirection = 0;
+    unsigned int seed = 0;
+
+    std::mt19937 gen;
+    std::uniform_real_distribution<> dist;
 
     bool gameInProgress = false;
     bool kill = false;
@@ -29,7 +39,12 @@ public:
 
     short xPos = 50;
     short yPos = 50;
+    int xDir = 1;
+    int yDir = 0;
     unsigned char playerID = 0;
+
+    unsigned int maintainDirectionLength = 250;
+    unsigned int timeSinceLastDirectionChange = 0;
 
     bool inFocus = true;
 

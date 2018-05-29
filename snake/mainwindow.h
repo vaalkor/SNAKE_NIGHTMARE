@@ -26,7 +26,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(bool isServer_, std::string name_="", bool testingMode_ = false, QHostAddress serverAddress_ = QHostAddress("000.000.000.000"), QWidget *parent = 0);
+    explicit MainWindow(bool isServer_, unsigned int seed_=0, std::string name_="", bool testingMode_ = false, QHostAddress serverAddress_ = QHostAddress("000.000.000.000"), QWidget *parent = 0);
 
     virtual void paintEvent(QPaintEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
@@ -36,6 +36,7 @@ public:
     bool testingMode;
     std::string name;
     QHostAddress serverAddress;
+    unsigned int seed;
 
     QThread *thread;
     ClientWorker *clientWorker;

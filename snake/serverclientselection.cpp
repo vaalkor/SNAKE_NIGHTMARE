@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 
 #include <QDebug>
+#include <chrono>
 
 ServerClientSelection::ServerClientSelection(QWidget *parent) :
     QDialog(parent),
@@ -18,10 +19,13 @@ ServerClientSelection::~ServerClientSelection()
 
 void ServerClientSelection::on_clientButtonClicked_clicked()
 {
-    bool testingMode = ui->clientButtonClicked->isChecked();
+    counter++;
+    unsigned int currentTime = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
+    bool testingMode = ui->testingModeCheckbox->isChecked();
     std::string name = ui->nameEntryBox->text().toStdString();
     QHostAddress address = QHostAddress(ui->IPSelectionBox->text());
-    new MainWindow(false, name, testingMode, address);
+    new MainWindow(false, counter*666*currentTime, name, testingMode, address);
 
 }
 
