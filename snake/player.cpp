@@ -11,5 +11,5 @@ Player::Player(QObject *parent) : QObject(parent)
 
 void Player::resizeTailArray()
 {
-//this will resize the tail array to the values specified by the game info class... cba to do it for now though...
+    //this will resize the tail array to the values specified by the game info class... cba to do it for now though...
 }

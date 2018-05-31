@@ -9,11 +9,6 @@
 #include <QPainter>
 #include <QRgb>
 
-#include "clientworker.h"
-#include "serverworker.h"
-#include "tcpclient.h"
-#include "tcpserver.h"
-
 #include "serverplayer.h"
 #include "clientplayer.h"
 
@@ -43,13 +38,13 @@ public:
     bool testingMode;
     std::string name;
 
-    void draw(bool endGame);
+    void draw();
     void drawSquare(short x, short y, QRgb color);
 
     virtual bool event(QEvent *e);
 
     QImage image;
-    QPen pen;
+    QPainter *painter;
 
     ~MainWindow();
 signals:

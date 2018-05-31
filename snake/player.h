@@ -5,8 +5,8 @@
 #include <random>
 #include <QHash>
 #include <QTimer>
-#include "tcpserver.h"
 #include <QByteArray>
+#include "gameobjectsanddata.h"
 //#include <   include tcp server... for game info...
 
 class Player : public QObject

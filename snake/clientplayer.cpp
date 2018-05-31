@@ -123,41 +123,41 @@ void ClientPlayer::readyReadTcp()
 
                 qDebug() << "before SWITCH STATEMENT!...bytes available: " << tcpSocket.bytesAvailable();
                 switch(mType){
-                    case MessageType::PLAYER_CONNECTED :
-                        qDebug() << "player connected";
-                        inblock >> tempID;
-                        dataSize -= sizeof(unsigned char);
-                        playerList[tempID].playerID = tempID; //this is totally useless btw...
-                        break;
                     case MessageType::BOMB_ACTIVATION :
-                        qDebug() << "bomb activation";
+                        //qDebug() << "bomb activation";
                         break;
                     case MessageType::PLAYER_DIED :
-                        qDebug() << "PLAYER DIED!!!";
-                        //stop the timer so we stop sending updates mate...
+                        //qDebug() << "PLAYER DIED!!!";
                         timer.stop();
                         break;
                     case MessageType::PLAYER_WON :
-                        qDebug() << "player won";
+                        //qDebug() << "player won";
                         inblock >> tempID;
                         dataSize -= sizeof(unsigned char);
                         gameOver(tempID);
-                        qDebug() << "PLAYER " << tempID << "WON!!!!";
+                        //qDebug() << "PLAYER " << tempID << "WON!!!!";
                         break;
                     case MessageType::GAME_BEGIN :
-                        qDebug() << "game begun";
+                        //qDebug() << "game begun";
+                        startGameTimerOnScreen = false;
                         startGame();
+                        emit drawSignal();
                         break;
                     case MessageType::TIMER_UPDATE :
                         short gameCounter;
                         inblock >> gameCounter;
+                        startGameTimer = gameCounter;
 
-                        //if the counter is 3 then we reset the tail array...
-                        if(gameCounter == 3)
+                        //if the counter has just started then we clear the previous game state array and display the timer number
+                        if(gameCounter == TIMER_LENGTH)
+                        {
                             memset(tailArray,0, sizeof(tailArray));
+                            startGameTimerOnScreen = true;
+                        }
 
                         qDebug() << "client timer update: " << gameCounter;
                         dataSize -= sizeof(short);
+                        emit drawSignal();
                         break;
                     case MessageType::PLAYER_ID_ASSIGNMENT:
                         qDebug() << "buffer count before assignment: " << buffer.count();

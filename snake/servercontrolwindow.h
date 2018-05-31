@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QHash>
-#include "tcpserver.h"
+#include "gameobjectsanddata.h"
 
 namespace Ui {
 class ServerControlWindow;

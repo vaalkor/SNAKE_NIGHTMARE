@@ -2,6 +2,7 @@
 #define CLIENTPLAYER_H
 
 #include "windows.h"
+#include "gameobjectsanddata.h"
 
 #include <QObject>
 #include "player.h"
@@ -19,6 +20,9 @@ public:
     QUdpSocket udpSocket;
     unsigned char clientID;
     QHostAddress address;
+
+    bool startGameTimerOnScreen = false;
+    short startGameTimer = 3;
 
     bool inFocus = true;
 

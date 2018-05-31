@@ -31,7 +31,8 @@ SOURCES += \
     servercontrolwindow.cpp \
     player.cpp \
     clientplayer.cpp \
-    serverplayer.cpp
+    serverplayer.cpp \
+    gameobjectsanddata.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -39,7 +40,8 @@ HEADERS += \
     servercontrolwindow.h \
     player.h \
     clientplayer.h \
-    serverplayer.h
+    serverplayer.h \
+    gameobjectsanddata.h
 
 FORMS += \
         mainwindow.ui \

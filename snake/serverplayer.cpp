@@ -334,3 +334,8 @@ void ServerPlayer::receivePosition(unsigned char ID, short x, short y)
         emit drawSignal();
     }
 }
+
+ServerPlayer::~ServerPlayer()
+{
+
+}

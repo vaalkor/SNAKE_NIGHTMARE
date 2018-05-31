@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "tcpserver.h"
-#include "tcpclient.h"
 #include <QHostAddress>
 #include "servercontrolwindow.h"
 
@@ -15,6 +13,7 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
 {
     ui->setupUi(this);
     image = QImage(500, 500, QImage::Format_RGB32);
+    painter = new QPainter(&image);
 
     if(isServer) //is server
     {
@@ -96,12 +95,8 @@ MainWindow::~MainWindow()
     else
         delete clientPlayer;
 
+    delete painter;
     delete ui;
-}
-
-void MainWindow::drawSlot()
-{
-    draw(false);
 }
 
 void MainWindow::drawSquare(short x, short y, QRgb color)
@@ -115,22 +110,32 @@ void MainWindow::drawSquare(short x, short y, QRgb color)
 }
 
 //THIS IS A COMPLETE MESS!!! NEEDS TO BE CLEANED UP....
-void MainWindow::draw(bool endGame)
+void MainWindow::drawSlot()
 {
-    if(endGame)
-        image.fill( qRgb(255,0,0));
-    else
-    {
-        image.fill( qRgb(0,0,0));
-        for(unsigned int i=0; i<100; i++)
-            for(unsigned int j=0; j<100; j++)
-                if(isServer && serverPlayer->tailArray[i][j])
-                    drawSquare(i, j, playerColors[ serverPlayer->tailArray[i][j] ]);
-                else if(!isServer && clientPlayer->tailArray[i][j])
-                    drawSquare(i, j, playerColors[ clientPlayer->tailArray[i][j] ]);
+    image.fill( qRgb(0,0,0));
+    for(unsigned int i=0; i<100; i++)
+        for(unsigned int j=0; j<100; j++)
+            if(isServer && serverPlayer->tailArray[i][j])
+                drawSquare(i, j, playerColors[ serverPlayer->tailArray[i][j] ]);
+            else if(!isServer && clientPlayer->tailArray[i][j])
+                drawSquare(i, j, playerColors[ clientPlayer->tailArray[i][j] ]);
 
-        if(!isServer)
-            drawSquare(clientPlayer->xPos, clientPlayer->yPos, qRgb(255,255,255));
+    if(!isServer)
+    {
+        drawSquare(clientPlayer->xPos, clientPlayer->yPos, qRgb(255,255,255));
+        if(clientPlayer->startGameTimerOnScreen)
+        {
+            QPen pen( playerColors[ clientPlayer->clientID ] );
+            pen.setWidthF(3);
+            painter->setPen(pen);
+            painter->setFont(QFont("Times", 40, QFont::Bold));
+            std::string tempNum = std::to_string(clientPlayer->startGameTimer);
+            painter->drawText(image.rect(), Qt::AlignCenter, QString::fromStdString(tempNum));
+
+            //when you change the width and height to be VARIABLE. you will have to do some more involved normalization...
+            painter->drawEllipse(QPoint( clientPlayer->xPos*5, clientPlayer->yPos*5), 15, 15);
+        }
+
     }
 
     update();

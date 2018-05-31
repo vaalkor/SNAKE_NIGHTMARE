@@ -2,7 +2,6 @@
 #include "ui_servercontrolwindow.h"
 #include <QDebug>
 #include <QAbstractListModel>
-#include "tcpserver.h"
 
 ServerControlWindow::ServerControlWindow(QWidget *parent) :
     QDialog(parent),

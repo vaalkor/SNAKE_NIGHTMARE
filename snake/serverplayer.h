@@ -7,6 +7,7 @@
 #include <QUdpSocket>
 #include "player.h"
 #include "servercontrolwindow.h"
+#include "gameobjectsanddata.h"
 
 
 class ServerPlayer : public Player
@@ -37,6 +38,8 @@ public:
 
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;
+
+    ~ServerPlayer();
 
 signals:
 
