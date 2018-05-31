@@ -15,9 +15,8 @@ class Player : public QObject
 public:
     Player(QObject *parent = 0);
 
-    GameInfo gameInfo;
-
-    bool gameInProgress = false;
+    GameState gameState;
+    GameParameters gameParameters;
 
     QTimer timer;
 

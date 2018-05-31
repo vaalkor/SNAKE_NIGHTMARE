@@ -22,7 +22,14 @@ public:
     PlayerInfo(unsigned char playerID_, QRgb color_, char* name_);
 };
 
-class GameInfo
+class GameState
+{
+public:
+    bool gameInProgress = false;
+    short numPlayers = 0;
+};
+
+class GameParameters
 {
 public:
     int width = 100;
@@ -34,11 +41,6 @@ public:
     bool normalMode = true;
     bool revengeMode = false;
     bool PUBGmode = false;
-
-    short numPlayers = 0;
-
-    bool gameInProgress = false;
-
 };
 
 enum class MessageType : unsigned char

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QHostAddress>
+#include <QDesktopWidget>
 #include "servercontrolwindow.h"
 
 MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
@@ -15,12 +16,16 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
     image = QImage(500, 500, QImage::Format_RGB32);
     painter = new QPainter(&image);
 
+    QRect screen = QApplication::desktop()->screenGeometry(0);
+
     if(isServer) //is server
     {
         serverPlayer = new ServerPlayer();
 
         QObject::connect(serverPlayer->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
         QObject::connect(serverPlayer->serverWindow, SIGNAL(startGameSignal()), serverPlayer, SLOT(startGameCounterSlot()));
+
+        move(QPoint( screen.width()*0.75-width()/2.0, screen.height()*0.75-height()/2.0 ));
 
     }else //is client
     {
@@ -29,6 +34,8 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
         QObject::connect(&clientPlayer->tcpSocket, SIGNAL(connected()), this, SLOT(clientConnectionSuccess()));
         QObject::connect(&clientPlayer->tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientConnectionFailure(QAbstractSocket::SocketError)));
         clientPlayer->connect();
+
+        move(QPoint(screen.width()*0.5-width()/2.0, screen.height()*0.75-height()/2.0));
     }
 }
 
@@ -36,7 +43,7 @@ void MainWindow::clientConnectionSuccess()
 {
     show();
 
-    QObject::connect(clientPlayer, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
+    QObject::connect(clientPlayer, SIGNAL(drawSignal()), this, SLOT(drawSlot()) );
 
     clientPlayer->sendName(name);
 

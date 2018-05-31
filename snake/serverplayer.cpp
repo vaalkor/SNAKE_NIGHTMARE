@@ -50,8 +50,8 @@ void ServerPlayer::gameOver(unsigned char winnerID)
     for(auto &socket : clients)
         socket->write(block);
 
-    gameInfo.gameInProgress = false;
-    serverWindow->updateUI(playerList, gameInfo);
+    gameState.gameInProgress = false;
+    serverWindow->updateUI(playerList, gameState);
 }
 
 void ServerPlayer::sendPosition(unsigned char ID, short x, short y)
@@ -93,15 +93,15 @@ void ServerPlayer::calculateStartingPosition(short &x, short &y)
         {
             playerPositionGrid[tempX][tempY] = 1;
             qDebug() << "starting pos server: " << tempX << "/" << tempY;
-            x = (0.15 + (tempX/(float)4)*0.7) * gameInfo.width;
-            y = (0.15 + (tempY/(float)5)*0.7) * gameInfo.height;
+            x = (0.15 + (tempX/(float)4)*0.7) * gameParameters.width;
+            y = (0.15 + (tempY/(float)5)*0.7) * gameParameters.height;
             return;
         }
     }
 }
 void ServerPlayer::sendWinSignal(unsigned char ID)
 {
-    gameInfo.gameInProgress = false;
+    gameState.gameInProgress = false;
     for(QTcpSocket* socket : clients)
     {
         block.clear();
@@ -114,7 +114,7 @@ void ServerPlayer::sendWinSignal(unsigned char ID)
 
 void ServerPlayer::checkWinConditions()
 {
-    if(gameInfo.gameInProgress)
+    if(gameState.gameInProgress)
     {
         int numAlive = 0;
         unsigned char aliveID = 0; //the id of the survivor
@@ -127,7 +127,7 @@ void ServerPlayer::checkWinConditions()
 
         //important note: if there are no players alive the ID will be ZERO. this just signifies a draw as no players ever have their ID set to ZERO. The ID's start from 1.
 
-        if(gameInfo.numPlayers == 1)
+        if(gameState.numPlayers == 1)
         {
             if(numAlive == 0)
                 sendWinSignal( playerList.begin()->playerID );
@@ -143,7 +143,7 @@ void ServerPlayer::checkWinConditions()
 
 void ServerPlayer::handleConnection()
 {
-    if(gameInfo.numPlayers < MAX_NUM_PLAYERS)
+    if(gameState.numPlayers < MAX_NUM_PLAYERS)
     {
         while(server->hasPendingConnections())
         {
@@ -173,7 +173,7 @@ void ServerPlayer::handleConnection()
             out << tempID;
             tempClient->write(block);
 
-            gameInfo.numPlayers++;
+            gameState.numPlayers++;
         }
     }
 }
@@ -190,12 +190,12 @@ void ServerPlayer::clientDisconnected()
         if(clientSocket == *it)
         {
             clients.erase(it);
-            gameInfo.numPlayers--;
+            gameState.numPlayers--;
             break;
         }
     }
 
-    serverWindow->updateUI(playerList, gameInfo);
+    serverWindow->updateUI(playerList, gameState);
     clientSocket->deleteLater();
 }
 
@@ -206,7 +206,7 @@ void ServerPlayer::startGameCounterSlot()
     startGameCounter = 3;
 
     qDebug() << "startgame button pressed... sending start game messages...";
-    if(gameInfo.numPlayers > 0)
+    if(gameState.numPlayers > 0)
     {
         //CALCULATE STARTING POSITIONS AND WRITE THEM TO THE APPROPRIATE CLIENTS
         memset(playerPositionGrid, 0, sizeof(playerPositionGrid)); //set the positions to blank.
@@ -214,7 +214,7 @@ void ServerPlayer::startGameCounterSlot()
         for(auto it=playerList.begin(); it!=playerList.end(); it++)
             it->alive = true;
 
-        gameInfo.gameInProgress = true;
+        gameState.gameInProgress = true;
 
         timer.start(1000);
     }
@@ -233,7 +233,7 @@ void ServerPlayer::iterateStartGameCounter()
         for(auto &socket : clients)
             socket->write(block);
 
-        serverWindow->updateUI(playerList, gameInfo);
+        serverWindow->updateUI(playerList, gameState);
 
         timer.stop();
 
@@ -303,19 +303,20 @@ void ServerPlayer::readyReadTcp()
 
             //qDebug() << (unsigned int)mType;
 
-            switch(mType){
-                case MessageType::BOMB_ACTIVATION :
-                    //qDebug() << "bomb activation";
-                    //NEED TO HANDLE THIS LATER ON M8....
-                    break;
-                case MessageType::NOTIFY_SERVER_OF_PLAYER_NAME:
-                    //qDebug() << "notify of name...";
-                    QString data;
-                    inblock >> data;
-                    std::string tempStr = data.toStdString();
-                    strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), 20 );
-                    serverWindow->updateUI(playerList, gameInfo);
-                    break;
+            if(mType == MessageType::BOMB_ACTIVATION)
+            {
+                //qDebug() << "bomb activation";
+                //NEED TO HANDLE THIS LATER ON M8....
+                break;
+            }else if(mType == MessageType::NOTIFY_SERVER_OF_PLAYER_NAME)
+            {
+                //qDebug() << "notify of name...";
+                QString data;
+                inblock >> data;
+                std::string tempStr = data.toStdString();
+                strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), 20 );
+                serverWindow->updateUI(playerList, gameState);
+                break;
             }
         }
 }

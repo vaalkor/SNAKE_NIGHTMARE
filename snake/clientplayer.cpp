@@ -183,14 +183,14 @@ void ClientPlayer::readyReadTcp()
 
 void ClientPlayer::startGame()
 {
-    gameInProgress = true;
+    gameState.gameInProgress = true;
     timer.start(33); //start the fooking timer mate!!!!! sick one sick. //remember you will also have to clear the array at the start of your countdown.
 }
 
 void ClientPlayer::gameOver(unsigned char ID)
 {
     qDebug() << "player " << ID << " wins!!!!";
-    gameInProgress = false;
+    gameState.gameInProgress = false;
     timer.stop();
 }
 
