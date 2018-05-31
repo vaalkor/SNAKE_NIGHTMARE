@@ -14,6 +14,9 @@
 #include "tcpclient.h"
 #include "tcpserver.h"
 
+#include "serverplayer.h"
+#include "clientplayer.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -31,6 +34,9 @@ public:
     virtual void paintEvent(QPaintEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void closeEvent(QCloseEvent *event);
+
+    ServerPlayer serverPlayer;
+    ClientPlayer clientPlayer;
 
     bool isServer;
     bool testingMode;

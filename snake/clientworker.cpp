@@ -76,7 +76,6 @@ void ClientWorker::process()
                 }
                 if(GetKeyState(VK_ESCAPE) & 0x8000 || GetKeyState(VK_RETURN) & 0x8000)
                 {
-                    isGameOver = false;
                     xPos = 50;
                     yPos = 50;
                     xDir = 1;
@@ -84,19 +83,12 @@ void ClientWorker::process()
                 }
             }
 
-            if(isGameOver)
-            {
-                emit drawSignal();
-            }
-            else
-            {
                 xPos += xDir;
                 yPos += yDir;
 
                 emit drawSignal();
                 emit sendPosition(xPos, yPos);
 
-            }
             timeSinceLastDirectionChange += 33;
             if(testingMode && timeSinceLastDirectionChange >= maintainDirectionLength)
             {

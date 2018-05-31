@@ -52,7 +52,6 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
 
 void tcpServer::readyReadUdp()
 {
-
     while (clientUdp->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(clientUdp->pendingDatagramSize());

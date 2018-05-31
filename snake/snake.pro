@@ -32,7 +32,10 @@ SOURCES += \
     tcpserver.cpp \
     clientworker.cpp \
     serverworker.cpp \
-    servercontrolwindow.cpp
+    servercontrolwindow.cpp \
+    player.cpp \
+    clientplayer.cpp \
+    serverplayer.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +44,10 @@ HEADERS += \
     tcpserver.h \
     clientworker.h \
     serverworker.h \
-    servercontrolwindow.h
+    servercontrolwindow.h \
+    player.h \
+    clientplayer.h \
+    serverplayer.h
 
 FORMS += \
         mainwindow.ui \
