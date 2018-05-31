@@ -2,28 +2,33 @@
 
 ServerPlayer::ServerPlayer(QObject *parent) : Player(parent)
 {
-    clientUdp.bind(6666);
+    clientUdp = new QUdpSocket();
+    server = new QTcpServer();
+
+    clientUdp->bind(6666);
+
+    serverWindow = new ServerControlWindow();
 
     memset(playerPositionGrid, 0, sizeof(playerPositionGrid));
 
-    QObject::connect(&server, SIGNAL(newConnection()), this, SLOT(handleConnection()));
-    QObject::connect(&clientUdp, SIGNAL(readyRead()), this, SLOT(readyReadUdp()));
+    QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()));
+    QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(readyReadUdp()));
     QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(iterateStartGameCounter()));
 
-    if (!server.listen(QHostAddress::Any, 6666))
+    if (!server->listen(QHostAddress::Any, 6666))
         qDebug() << "could not listen on server mate..\n";
     else
         qDebug() << "Listening on port 6666, localhost mate";
 
-    serverWindow.show();
+    serverWindow->show();
 }
 
 void ServerPlayer::readyReadUdp()
 {
-    while (clientUdp.hasPendingDatagrams()) {
+    while (clientUdp->hasPendingDatagrams()) {
         QByteArray datagram;
-        datagram.resize(clientUdp.pendingDatagramSize());
-        clientUdp.readDatagram(datagram.data(), datagram.size());
+        datagram.resize(clientUdp->pendingDatagramSize());
+        clientUdp->readDatagram(datagram.data(), datagram.size());
         unsigned char clientID;
         short x,y;
         QDataStream inblock(&datagram, QIODevice::ReadOnly);
@@ -46,7 +51,7 @@ void ServerPlayer::gameOver(unsigned char winnerID)
         socket->write(block);
 
     gameInfo.gameInProgress = false;
-    serverWindow.updateUI(playerList, gameInfo);
+    serverWindow->updateUI(playerList, gameInfo);
 }
 
 void ServerPlayer::sendPosition(unsigned char ID, short x, short y)
@@ -58,7 +63,7 @@ void ServerPlayer::sendPosition(unsigned char ID, short x, short y)
         stream << ID;
         stream << x;
         stream << y;
-        clientUdp.writeDatagram(buffer.data(), buffer.size(), client->peerAddress(), 1234);
+        clientUdp->writeDatagram(buffer.data(), buffer.size(), client->peerAddress(), 1234);
     }
 }
 
@@ -140,9 +145,9 @@ void ServerPlayer::handleConnection()
 {
     if(gameInfo.numPlayers < MAX_NUM_PLAYERS)
     {
-        while(server.hasPendingConnections())
+        while(server->hasPendingConnections())
         {
-            QTcpSocket *tempClient = server.nextPendingConnection();
+            QTcpSocket *tempClient = server->nextPendingConnection();
             clients.push_back( tempClient );
 
             tempClient->setSocketOption(QAbstractSocket::LowDelayOption,1);
@@ -190,7 +195,7 @@ void ServerPlayer::clientDisconnected()
         }
     }
 
-    serverWindow.updateUI(playerList, gameInfo);
+    serverWindow->updateUI(playerList, gameInfo);
     clientSocket->deleteLater();
 }
 
@@ -228,7 +233,7 @@ void ServerPlayer::iterateStartGameCounter()
         for(auto &socket : clients)
             socket->write(block);
 
-        serverWindow.updateUI(playerList, gameInfo);
+        serverWindow->updateUI(playerList, gameInfo);
 
         timer.stop();
 
@@ -309,7 +314,7 @@ void ServerPlayer::readyReadTcp()
                     inblock >> data;
                     std::string tempStr = data.toStdString();
                     strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), 20 );
-                    serverWindow.updateUI(playerList, gameInfo);
+                    serverWindow->updateUI(playerList, gameInfo);
                     break;
             }
         }
@@ -337,5 +342,7 @@ void ServerPlayer::receivePosition(unsigned char ID, short x, short y)
 
 ServerPlayer::~ServerPlayer()
 {
-
+    serverWindow->deleteLater();
+    clientUdp->deleteLater();
+    server->deleteLater();
 }

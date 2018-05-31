@@ -19,8 +19,8 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
     {
         serverPlayer = new ServerPlayer();
 
-        QObject::connect(&serverPlayer->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
-        QObject::connect(&serverPlayer->serverWindow, SIGNAL(startGameSignal()), serverPlayer, SLOT(startGameCounterSlot()));
+        QObject::connect(serverPlayer->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
+        QObject::connect(serverPlayer->serverWindow, SIGNAL(startGameSignal()), serverPlayer, SLOT(startGameCounterSlot()));
 
     }else //is client
     {
@@ -91,9 +91,9 @@ MainWindow::~MainWindow()
 {
     qDebug() << "isServer: " << isServer << "... DESTRUCTOR CALLED...";
     if(isServer)
-        delete serverPlayer;
+        serverPlayer->deleteLater();
     else
-        delete clientPlayer;
+        clientPlayer->deleteLater();
 
     delete painter;
     delete ui;

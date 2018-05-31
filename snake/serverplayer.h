@@ -16,10 +16,10 @@ class ServerPlayer : public Player
 public:
     ServerPlayer(QObject *parent = 0);
 
-    ServerControlWindow serverWindow;
+    ServerControlWindow *serverWindow;
 
-    QTcpServer server;
-    QUdpSocket clientUdp;
+    QTcpServer *server;
+    QUdpSocket *clientUdp;
 
     unsigned int clientIDCounter = 0;
     short startGameCounter;
