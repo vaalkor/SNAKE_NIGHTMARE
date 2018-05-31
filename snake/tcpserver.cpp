@@ -28,6 +28,7 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
     server = new QTcpServer(this);
     clientUdp = new QUdpSocket(this);
     clientUdp->bind(6666);
+    //clientUdp->bind()
 
     std::default_random_engine rd( std::chrono::high_resolution_clock::now().time_since_epoch().count() );
     gen = std::mt19937(rd());
@@ -37,6 +38,8 @@ tcpServer::tcpServer(QObject *parent) : QObject(parent)
 
     QObject::connect(server, SIGNAL(newConnection()), this, SLOT(handleConnection()) );
     QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(readyReadUdp()));
+
+    QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(iterateStartGameCounter()));
 
     if (!server->listen(QHostAddress::Any, 6666))
     {
@@ -169,7 +172,7 @@ void tcpServer::sendTcpMessage()
     for(auto &socket : clients)
         socket->write(block);
 }
-void tcpServer::startGame()
+void tcpServer::startGameCounterSlot()
 {
     qDebug() << "startgame button pressed... sending start game messages...";
     if(info.numPlayers > 0)
@@ -180,10 +183,9 @@ void tcpServer::startGame()
         for(auto it=playerList.begin(); it!=playerList.end(); it++)
             it->alive = true;
 
-        emit startGameSignal(); //this will have to be changed when we presumabely change to having a server without serverworker... and just have one thing that EXTENDS TCPSERVER!!!! FUCKING NICE...
-
-        info.gameInProgress = true;
-
+        //this needs to be changed. the starting position of EACH PLAYER needs to be sent to every other player mate.. I'll do that tomorrow
+        //I also need to add some checks so that ONCE the game start button has been clicked, no more people can join.... cool mate cool.
+        //also need to add some stuff to make sure that all values and whatever are changed to the right things when games are ended, and stsrted.... whatever.
         for(auto &socket : clients)
         {
             short x,y;
@@ -196,17 +198,47 @@ void tcpServer::startGame()
             socket->write(block);
         }
 
+        info.gameInProgress = true;
+
+        timer.start(1000);
+    }
+}
+void tcpServer::iterateStartGameCounter()
+{
+    qDebug() << "GAME COUNTER: " << startGameCounter;
+    if(startGameCounter == 0)   //start the game!...
+    {
+        startGameCounter = 3;
+
+
+        emit startGameSignal(); //this will have to be changed when we presumabely change to having a server without serverworker... and just have one thing that EXTENDS TCPSERVER!!!! FUCKING NICE...
+
         block.clear();
         QDataStream out(&block, QIODevice::WriteOnly);
         out << (unsigned char)MessageType::GAME_BEGIN;
-
-        info.gameInProgress = true;
 
         for(auto &socket : clients)
             socket->write(block);
 
         emit updateServerUI();
+
+        timer.stop();
+
+    }else                       //send the counter...
+    {
+
+        block.clear();
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << (unsigned char)MessageType::TIMER_UPDATE;
+        out << startGameCounter;
+
+        for(auto &socket : clients)
+            socket->write(block);
+
+        startGameCounter--;
     }
+
+
 }
 void tcpServer::stopGame()
 {

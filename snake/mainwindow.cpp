@@ -26,7 +26,7 @@ MainWindow::MainWindow(bool isServer_, unsigned int seed_, std::string name_, bo
 
         QObject::connect(server, SIGNAL(receivePositionSignal(unsigned char, short,short)), this, SLOT(serverReceivePositionSlot(unsigned char, short,short)) );
         QObject::connect(&serverWorker->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
-        QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGame()));
+        QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGameCounterSlot()));
         QObject::connect(&serverWorker->serverWindow, SIGNAL(stopCurrentGameSignal()), server, SLOT(stopGame()));
         QObject::connect(server, SIGNAL(updateServerUI()), this, SLOT(updateServerUISlot()));
         QObject::connect(server, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));

@@ -13,6 +13,7 @@
 #include <QHash>
 #include <chrono>
 #include <random>
+#include <QTimer>
 
 #define MAX_NUM_PLAYERS 20
 
@@ -80,6 +81,9 @@ public:
     int count = 0;
     unsigned int clientIDCounter = 0;
 
+    QTimer timer;
+    short startGameCounter;
+
     unsigned char playerPositionGrid[4][5];
 
     std::mt19937 gen;
@@ -104,12 +108,13 @@ public slots:
     void readyReadTcp();
     void readyReadUdp();
     void clientDisconnected();
-    void startGame();
     void gameOver(unsigned char winnerID);
     void stopGame();
     void sendPositionToAllClients(unsigned char clientID, short x, short y);
     void sendWinSignal(unsigned char clientID);
     void checkWinConditions();
+    void iterateStartGameCounter();
+    void startGameCounterSlot();
 private:
     //QDataStream *out;
     QByteArray block;
