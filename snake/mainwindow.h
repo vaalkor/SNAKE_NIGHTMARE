@@ -29,27 +29,19 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(bool isServer_, unsigned int seed_=0, std::string name_="", bool testingMode_ = false, QHostAddress serverAddress_ = QHostAddress("000.000.000.000"), QWidget *parent = 0);
+    explicit MainWindow(bool isServer_, std::string name_="", bool testingMode_ = false, QHostAddress serverAddress_ = QHostAddress("000.000.000.000"), QWidget *parent = 0);
 
     virtual void paintEvent(QPaintEvent *event);
-    virtual void keyPressEvent(QKeyEvent *event);
     virtual void closeEvent(QCloseEvent *event);
 
-    ServerPlayer serverPlayer;
-    ClientPlayer clientPlayer;
+    ServerPlayer *serverPlayer;
+    ClientPlayer *clientPlayer;
+
+    QHostAddress serverAddress;
 
     bool isServer;
     bool testingMode;
     std::string name;
-    QHostAddress serverAddress;
-    unsigned int seed;
-
-    QThread *thread;
-    ClientWorker *clientWorker;
-    ServerWorker *serverWorker;
-
-    tcpServer *server;
-    tcpClient *client;
 
     void draw(bool endGame);
     void drawSquare(short x, short y, QRgb color);
@@ -61,22 +53,10 @@ public:
 
     ~MainWindow();
 signals:
-    focusChanged(bool value);
 public slots:
-    void serverReceivePositionSlot(unsigned char clientID, short x, short y);
-    void clientReceivePositionSlot(unsigned char clientID, short x, short y);
     void drawSlot();
-    void receivedKillAcknowledgement();
     void clientConnectionSuccess();
     void clientConnectionFailure(QAbstractSocket::SocketError err);
-    void clientReceiveStartPosition(short x, short y);
-
-    void startGameSlot();
-    void stopGameSlot();
-    void gameOverSlot(unsigned char clientID);
-    void updateServerUISlot();
-
-    void handlePlayerDeath();
 private:
     Ui::MainWindow *ui;
 };

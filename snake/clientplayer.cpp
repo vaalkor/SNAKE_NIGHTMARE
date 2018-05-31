@@ -65,8 +65,6 @@ void ClientPlayer::iterateGameState()
     emit drawSignal();
 }
 
-void ClientPlayer::focusChanged(bool value){ inFocus = value; }
-
 void ClientPlayer::readyReadUdp()
 {
     while (udpSocket.hasPendingDatagrams()) {
@@ -116,7 +114,7 @@ void ClientPlayer::readyReadTcp()
                 inblock >> mTypeChar;
                 MessageType mType;
                 mType = static_cast<MessageType>(mTypeChar);
-                dataSize--;
+                dataSize -= sizeof(unsigned char);
 
                 qDebug() << "buffer count after enum read: " << buffer.count();
 
@@ -131,12 +129,6 @@ void ClientPlayer::readyReadTcp()
                         dataSize -= sizeof(unsigned char);
                         playerList[tempID].playerID = tempID; //this is totally useless btw...
                         break;
-                    case MessageType::PLAYER_DISCONNECTED :
-                        qDebug() << "player disconnected";
-                        break;
-                    case MessageType::POSITION_UPDATE :
-                        qDebug() << "player update";
-                        break;
                     case MessageType::BOMB_ACTIVATION :
                         qDebug() << "bomb activation";
                         break;
@@ -149,19 +141,23 @@ void ClientPlayer::readyReadTcp()
                         qDebug() << "player won";
                         inblock >> tempID;
                         dataSize -= sizeof(unsigned char);
-                        //emit gameOverSignal(tempID);
+                        gameOver(tempID);
                         qDebug() << "PLAYER " << tempID << "WON!!!!";
                         break;
                     case MessageType::GAME_BEGIN :
                         qDebug() << "game begun";
-                        //emit startGameSignal();
+                        startGame();
                         break;
                     case MessageType::TIMER_UPDATE :
-                        qDebug() << "timer update";
-                        break;
-                    case MessageType::GAME_STOPPED :
-                        qDebug() << "game stopped";
-                        //emit stopGameSignal();
+                        short gameCounter;
+                        inblock >> gameCounter;
+
+                        //if the counter is 3 then we reset the tail array...
+                        if(gameCounter == 3)
+                            memset(tailArray,0, sizeof(tailArray));
+
+                        qDebug() << "client timer update: " << gameCounter;
+                        dataSize -= sizeof(short);
                         break;
                     case MessageType::PLAYER_ID_ASSIGNMENT:
                         qDebug() << "buffer count before assignment: " << buffer.count();
@@ -171,10 +167,12 @@ void ClientPlayer::readyReadTcp()
                         break;
                     case MessageType::START_POSITION:
                         short x,y;
+                        inblock >> tempID;
                         inblock >> x;
                         inblock >> y;
-                        dataSize -= sizeof(unsigned char); dataSize -= sizeof(unsigned char);
-                        //receiveStartingPosition(x, y);
+                        dataSize -= sizeof(unsigned char);
+                        dataSize -= sizeof(short); dataSize -= sizeof(short);
+                        receiveStartPosition(tempID, x, y);
 
                 }
                 qDebug() << "after switch!...bytes available: " << tcpSocket.bytesAvailable();
@@ -233,4 +231,6 @@ void ClientPlayer::receiveStartPosition(unsigned char ID, short x, short y)
     {
         tailArray[x][y] = ID;
     }
+
+    emit drawSignal();
 }

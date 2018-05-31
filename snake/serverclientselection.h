@@ -17,8 +17,6 @@ public:
     void focusInEvent(QFocusEvent *event);
     void focusOutEvent(QFocusEvent *event);
 
-    int counter = 0;
-
 private slots:
 
     void on_clientButtonClicked_clicked();

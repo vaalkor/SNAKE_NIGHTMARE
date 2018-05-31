@@ -198,6 +198,8 @@ void ServerPlayer::startGameCounterSlot()
 {
     memset(tailArray, 0, sizeof(tailArray));
 
+    startGameCounter = 3;
+
     qDebug() << "startgame button pressed... sending start game messages...";
     if(gameInfo.numPlayers > 0)
     {
@@ -206,21 +208,6 @@ void ServerPlayer::startGameCounterSlot()
 
         for(auto it=playerList.begin(); it!=playerList.end(); it++)
             it->alive = true;
-
-        //this needs to be changed. the starting position of EACH PLAYER needs to be sent to every other player mate.. I'll do that tomorrow
-        //I also need to add some checks so that ONCE the game start button has been clicked, no more people can join.... cool mate cool.
-        //also need to add some stuff to make sure that all values and whatever are changed to the right things when games are ended, and stsrted.... whatever.
-        for(auto &socket : clients)
-        {
-            short x,y;
-            calculateStartingPosition(x,y);
-            qDebug() << "starting position: " << x << "..." << y;
-            block.clear();
-            QDataStream out(&block, QIODevice::WriteOnly);
-            out << (unsigned char)MessageType::START_POSITION;
-            out << x << y;
-            socket->write(block);
-        }
 
         gameInfo.gameInProgress = true;
 
@@ -247,7 +234,6 @@ void ServerPlayer::iterateStartGameCounter()
 
     }else                       //send the counter...
     {
-
         block.clear();
         QDataStream out(&block, QIODevice::WriteOnly);
         out << (unsigned char)MessageType::TIMER_UPDATE;
@@ -255,6 +241,29 @@ void ServerPlayer::iterateStartGameCounter()
 
         for(auto &socket : clients)
             socket->write(block);
+
+        if(startGameCounter == 3) //putting this here is a shitty solution but it works for the moment. I think I'll add a signal to inform the client that it should clear it's tail array instead of relying on this very stateful solution
+        {
+            //this needs to be changed. the starting position of EACH PLAYER needs to be sent to every other player mate.. I'll do that tomorrow
+            //I also need to add some checks so that ONCE the game start button has been clicked, no more people can join.... cool mate cool.
+            //also need to add some stuff to make sure that all values and whatever are changed to the right things when games are ended, and stsrted.... whatever.
+            for(QTcpSocket *socket : clients)
+            {
+                short x,y;
+                calculateStartingPosition(x,y);
+                qDebug() << "starting position: " << x << "..." << y;
+                block.clear();
+                QDataStream out(&block, QIODevice::WriteOnly);
+                out << (unsigned char)MessageType::START_POSITION;
+                out << idList[socket]; //send the id of that player...
+                out << x << y;
+                socket->write(block);
+
+                //now write out that starting position to all clients in the game...
+                for(auto &clientSocket : clients)
+                    clientSocket->write(block);
+            }
+        }
 
         startGameCounter--;
     }
@@ -266,7 +275,7 @@ void ServerPlayer::readyReadTcp()
     //this gets the address of the socket we are going to read from.
         QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender());
 
-        qDebug() << "Bytes available: " << clientSocket->bytesAvailable();
+        //qDebug() << "Bytes available: " << clientSocket->bytesAvailable();
         while(clientSocket->bytesAvailable())
         {
             int dataSize = clientSocket->bytesAvailable();
@@ -287,15 +296,15 @@ void ServerPlayer::readyReadTcp()
             MessageType mType;
             mType = static_cast<MessageType>(mTypeChar);
 
-            qDebug() << (unsigned int)mType;
+            //qDebug() << (unsigned int)mType;
 
             switch(mType){
                 case MessageType::BOMB_ACTIVATION :
-                    qDebug() << "bomb activation";
+                    //qDebug() << "bomb activation";
                     //NEED TO HANDLE THIS LATER ON M8....
                     break;
                 case MessageType::NOTIFY_SERVER_OF_PLAYER_NAME:
-                    qDebug() << "notify of name...";
+                    //qDebug() << "notify of name...";
                     QString data;
                     inblock >> data;
                     std::string tempStr = data.toStdString();

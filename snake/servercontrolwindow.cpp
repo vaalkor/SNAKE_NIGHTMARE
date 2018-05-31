@@ -42,12 +42,6 @@ void ServerControlWindow::on_startGameButton_clicked()
 {
     emit startGameSignal();
 }
-
-void ServerControlWindow::on_stopGameButton_clicked()
-{
-    emit stopCurrentGameSignal();
-}
-
 void ServerControlWindow::on_quitButton_clicked()
 {
     emit rejectSignal();

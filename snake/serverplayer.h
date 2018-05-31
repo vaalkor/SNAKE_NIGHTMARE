@@ -31,9 +31,7 @@ public:
     void sendDeathSignal(unsigned char ID);
     void calculateStartingPosition(short &x, short &y);
 
-    void startGameCounterSlot();
     void gameOver(unsigned char winnerID);
-    void stopGame();
     void sendWinSignal(unsigned char ID);
     void checkWinConditions();
 
@@ -47,6 +45,7 @@ public slots:
     void readyReadTcp() override;
     void handleConnection();
     void clientDisconnected();
+    void startGameCounterSlot();
     void iterateStartGameCounter();
 };
 

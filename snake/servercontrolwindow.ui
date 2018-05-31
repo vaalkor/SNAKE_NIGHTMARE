@@ -168,9 +168,9 @@
   <widget class="QPushButton" name="startGameButton">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>30</x>
      <y>300</y>
-     <width>111</width>
+     <width>201</width>
      <height>41</height>
     </rect>
    </property>
@@ -178,25 +178,12 @@
     <string>Start Game</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="stopGameButton">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>300</y>
-     <width>121</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Stop Current Game</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="quitButton">
    <property name="geometry">
     <rect>
-     <x>270</x>
+     <x>280</x>
      <y>300</y>
-     <width>111</width>
+     <width>101</width>
      <height>41</height>
     </rect>
    </property>

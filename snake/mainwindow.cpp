@@ -5,11 +5,10 @@
 #include <QHostAddress>
 #include "servercontrolwindow.h"
 
-MainWindow::MainWindow(bool isServer_, unsigned int seed_, std::string name_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
+MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     isServer(isServer_),
-    seed(seed_),
     name(name_),
     testingMode(testingMode_),
     serverAddress(serverAddress_)
@@ -17,29 +16,20 @@ MainWindow::MainWindow(bool isServer_, unsigned int seed_, std::string name_, bo
     ui->setupUi(this);
     image = QImage(500, 500, QImage::Format_RGB32);
 
-    thread = new QThread();
-
     if(isServer) //is server
     {
-        server = new tcpServer();
-        serverWorker = new ServerWorker();
+        serverPlayer = new ServerPlayer();
 
-        QObject::connect(server, SIGNAL(receivePositionSignal(unsigned char, short,short)), this, SLOT(serverReceivePositionSlot(unsigned char, short,short)) );
-        QObject::connect(&serverWorker->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
-        QObject::connect(&serverWorker->serverWindow, SIGNAL(startGameSignal()), server, SLOT(startGameCounterSlot()));
-        QObject::connect(&serverWorker->serverWindow, SIGNAL(stopCurrentGameSignal()), server, SLOT(stopGame()));
-        QObject::connect(server, SIGNAL(updateServerUI()), this, SLOT(updateServerUISlot()));
-        QObject::connect(server, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));
+        QObject::connect(&serverPlayer->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
+        QObject::connect(&serverPlayer->serverWindow, SIGNAL(startGameSignal()), serverPlayer, SLOT(startGameCounterSlot()));
 
     }else //is client
     {
-        clientWorker = new ClientWorker(testingMode, seed);
+        clientPlayer = new ClientPlayer(serverAddress);
 
-        client = new tcpClient(serverAddress);
-        QObject::connect(client->tcpSocket, SIGNAL(connected()), this, SLOT(clientConnectionSuccess()));
-        QObject::connect(client->tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientConnectionFailure(QAbstractSocket::SocketError)));
-        client->connect();
-
+        QObject::connect(&clientPlayer->tcpSocket, SIGNAL(connected()), this, SLOT(clientConnectionSuccess()));
+        QObject::connect(&clientPlayer->tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientConnectionFailure(QAbstractSocket::SocketError)));
+        clientPlayer->connect();
     }
 }
 
@@ -47,71 +37,18 @@ void MainWindow::clientConnectionSuccess()
 {
     show();
 
-    clientWorker->moveToThread(thread);
+    QObject::connect(clientPlayer, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
 
-    QObject::connect(this, &MainWindow::focusChanged, clientWorker, &ClientWorker::focusChanged); //for some reason this connection is not actually working.. oh well... what the fuck.. i dont get it son.. i dont get it...
-
-    QObject::connect(clientWorker, SIGNAL(sendPosition(short,short)), client, SLOT(sendPosition(short,short)));
-    QObject::connect(clientWorker, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
-    QObject::connect(clientWorker, SIGNAL(sendKillAcknowledgement()), this, SLOT(receivedKillAcknowledgement()));
-
-    QObject::connect(client, SIGNAL(receivePositionSignal(unsigned char,short,short)), this, SLOT(clientReceivePositionSlot(unsigned char, short,short)) );
-    QObject::connect(client, SIGNAL(startGameSignal()), this, SLOT(startGameSlot()));
-    QObject::connect(client, SIGNAL(stopGameSignal()), this, SLOT(stopGameSlot()));
-    QObject::connect(client, SIGNAL(playerDiedSignal()), this, SLOT(handlePlayerDeath()));
-    QObject::connect(client, SIGNAL(receiveStartingPosition(short,short)), this, SLOT(clientReceiveStartPosition(short,short)));
-    QObject::connect(client, SIGNAL(gameOverSignal(unsigned char)), this, SLOT(gameOverSlot(unsigned char)));
-
-    QObject::connect(thread, SIGNAL(started()), clientWorker, SLOT(process()) );
-
-    client->sendName(name);
-    thread->start();
+    clientPlayer->sendName(name);
 
     qDebug() << "client connection success";
 }
 void MainWindow::clientConnectionFailure(QAbstractSocket::SocketError err)
 {
     qDebug() << "client connection failure: " << err;
-
+    //add a few more cases to this m8?
     if(err == QAbstractSocket::NetworkError)
         deleteLater();
-}
-
-void MainWindow::handlePlayerDeath()
-{
-    clientWorker->gameInProgress = false;
-}
-
-void MainWindow::serverReceivePositionSlot(unsigned char clientID, short x, short y)
-{
-    if(server->playerList[clientID].alive)
-    {
-        if(serverWorker->tailArray[x][y] || x < 0 || x >= 100 || y < 0 || y >= 100) //currently we are storing thing shere.. but... info is in tcpserver innit.. move things around later on.
-        {
-            server->sendDeathSignal(clientID);
-            server->playerList[clientID].alive = false;
-        }
-        else
-        {
-            serverWorker->tailArray[x][y] = clientID;
-            server->sendPositionToAllClients(clientID, x, y);
-        }
-        server->checkWinConditions();
-
-        draw(false);
-    }
-
-}
-
-void MainWindow::clientReceiveStartPosition(short x, short y)
-{
-    clientWorker->xPos = x;
-    clientWorker->yPos = y;
-}
-
-void MainWindow::clientReceivePositionSlot(unsigned char clientID, short x, short y)
-{
-    clientWorker->tailArray[x][y] = clientID;
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
@@ -123,21 +60,13 @@ void MainWindow::paintEvent(QPaintEvent *event)
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "goodbye!";
-    if(!isServer)
+    /*if(!isServer)
     {
         clientWorker->kill = true;
         clientWorker->waitCondition.wakeAll();
     }
-    else
+    else*/
         deleteLater();
-}
-
-void MainWindow::receivedKillAcknowledgement()
-{
-    qDebug() << "received kill acknowledge mate...";
-    thread->quit();
-    thread->wait();
-    deleteLater();
 }
 
 bool MainWindow::event(QEvent *e)
@@ -149,13 +78,11 @@ bool MainWindow::event(QEvent *e)
         if(e->type() == QEvent::WindowActivate)
         {
             qDebug() << "mainwindow focused";
-            //emit focusChanged(true);
-            clientWorker->inFocus = true;
+            clientPlayer->inFocus = true;
         }else if(e->type() == QEvent::WindowDeactivate)
         {
             qDebug() << "mainwindow unfocused"; //THIS IS NOT WHAT WE WANT.. WE WANT SIGNALS AND SLOTS BUT THIS IS A TEMPORARY MEASURE MATE!
-            clientWorker->inFocus = false;
-            //emit focusChanged(false);
+            clientPlayer->inFocus = false;
         }
     }
     return true;
@@ -165,38 +92,12 @@ MainWindow::~MainWindow()
 {
     qDebug() << "isServer: " << isServer << "... DESTRUCTOR CALLED...";
     if(isServer)
-    {
-        delete serverWorker;
-        delete server;
-    }
+        delete serverPlayer;
     else
-    {
-        delete clientWorker;
-        delete client;
-    }
+        delete clientPlayer;
+
     delete ui;
-    delete thread;
 }
-
-void MainWindow::updateServerUISlot()
-{
-    serverWorker->serverWindow.updateUI( server->playerList, server->info);
-}
-
-
-void MainWindow::keyPressEvent(QKeyEvent *event)
-{
-    if (event->key() == Qt::Key_Space)
-    {
-        qDebug() << "ye pressed C ye bloody basterdo...";
-        if(!isServer)
-            client->sendTcpMessage();
-        else
-            server->sendTcpMessage();
-    }
-
-}
-
 
 void MainWindow::drawSlot()
 {
@@ -223,40 +124,14 @@ void MainWindow::draw(bool endGame)
         image.fill( qRgb(0,0,0));
         for(unsigned int i=0; i<100; i++)
             for(unsigned int j=0; j<100; j++)
-                if(isServer && serverWorker->tailArray[i][j])
-                    drawSquare(i,j, playerColors[ serverWorker->tailArray[i][j] ]);
-                else if(!isServer && clientWorker->tailArray[i][j])
-                    drawSquare(i,j,playerColors[ clientWorker->tailArray[i][j] ]);
+                if(isServer && serverPlayer->tailArray[i][j])
+                    drawSquare(i, j, playerColors[ serverPlayer->tailArray[i][j] ]);
+                else if(!isServer && clientPlayer->tailArray[i][j])
+                    drawSquare(i, j, playerColors[ clientPlayer->tailArray[i][j] ]);
 
         if(!isServer)
-            drawSquare(clientWorker->xPos, clientWorker->yPos, qRgb(255,255,255));
+            drawSquare(clientPlayer->xPos, clientPlayer->yPos, qRgb(255,255,255));
     }
 
     update();
-}
-
-void MainWindow::gameOverSlot(unsigned char clientID)
-{
-    clientWorker->gameInProgress = false;
-}
-
-void MainWindow::startGameSlot()
-{
-    qDebug() << "start game slot called";
-    if(!isServer)
-    {
-        clientWorker->gameInProgress = true;
-        clientWorker->waitCondition.wakeAll();
-        memset(clientWorker->tailArray, 0, sizeof(clientWorker->tailArray));
-    }
-    else
-    {
-        memset(serverWorker->tailArray, 0, sizeof(serverWorker->tailArray));
-    }
-
-}
-void MainWindow::stopGameSlot()
-{
-    qDebug() << "stop game slot called";
-    clientWorker->gameInProgress = false;
 }

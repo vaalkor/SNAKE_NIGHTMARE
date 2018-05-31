@@ -42,7 +42,6 @@ public slots:
     void iterateGameState();
     void readyReadUdp() override;
     void readyReadTcp() override;
-    void focusChanged(bool value);
 };
 
 #endif // CLIENTPLAYER_H

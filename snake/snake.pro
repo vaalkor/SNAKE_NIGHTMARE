@@ -27,11 +27,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    tcpclient.cpp \
     serverclientselection.cpp \
-    tcpserver.cpp \
-    clientworker.cpp \
-    serverworker.cpp \
     servercontrolwindow.cpp \
     player.cpp \
     clientplayer.cpp \
@@ -39,11 +35,7 @@ SOURCES += \
 
 HEADERS += \
         mainwindow.h \
-    tcpclient.h \
     serverclientselection.h \
-    tcpserver.h \
-    clientworker.h \
-    serverworker.h \
     servercontrolwindow.h \
     player.h \
     clientplayer.h \
