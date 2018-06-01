@@ -181,7 +181,10 @@ void ClientPlayer::readyReadTcp()
                     case MessageType::PLAYER_WON :
                         //qDebug() << "player won";
                         inblock >> tempID;
+                        inblock >> winnerName;
+                        winnerID = tempID;
                         dataSize -= sizeof(unsigned char);
+                        dataSize -= winnerName.size()*sizeof(QChar);
                         gameOver(tempID);
                         //qDebug() << "PLAYER " << tempID << "WON!!!!";
                         break;
@@ -240,7 +243,9 @@ void ClientPlayer::gameOver(unsigned char ID)
 {
     qDebug() << "player " << ID << " wins!!!!";
     gameState.gameInProgress = false;
+    printWinnerName = true;
     timer.stop();
+    emit drawSignal();
 }
 
 //MIGHT NEED TO CHANGE THIS TO SEND ALSO HOW MANY BYTES THE NAME IS BEFORE HAND?!?!?!

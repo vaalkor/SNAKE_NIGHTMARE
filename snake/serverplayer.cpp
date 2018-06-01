@@ -103,6 +103,7 @@ void ServerPlayer::sendWinSignal(unsigned char ID)
 {
     gameState.gameInProgress = false;
     serverWindow->updateUI(playerList, gameState);
+    QString winnerName = QString::fromStdString( playerList[ID].name);
 
     for(QTcpSocket* socket : clients)
     {
@@ -110,6 +111,7 @@ void ServerPlayer::sendWinSignal(unsigned char ID)
         QDataStream out(&block, QIODevice::WriteOnly);
         out << (unsigned char)MessageType::PLAYER_WON;
         out << ID;
+        out << winnerName;
         socket->write(block);
     }
 }

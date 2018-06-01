@@ -177,6 +177,18 @@ void MainWindow::drawSlot()
             painter->setPen(*sprintBarPen);
             painter->drawRect(0.1*image.width(), 0.88*image.height(), 0.07*image.width()*bombProportion, 0.005*image.height());
         }
+        if(clientPlayer->printWinnerName)
+        {
+            QPen pen( Qt::white );
+            painter->setPen(pen);
+            painter->setFont(QFont("Times", 30, QFont::Bold));
+            QString text;
+            if(clientPlayer->winnerID == clientPlayer->clientID)
+                text = "YOU WIN!11!!!";
+            else
+                text = clientPlayer->winnerName + "\nWINS m8.";
+            painter->drawText(image.rect(), Qt::AlignCenter, text);
+        }
     }
 
     update();

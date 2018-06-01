@@ -24,6 +24,9 @@ public:
     bool startGameTimerOnScreen = false;
     short startGameTimer = 3;
 
+    bool printWinnerName = false;
+    QString winnerName;
+    short winnerID;
     bool inFocus = true;
     bool isSprinting = false;
     short sprintMeter = 100;
