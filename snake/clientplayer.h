@@ -25,7 +25,8 @@ public:
     short startGameTimer = 3;
 
     bool inFocus = true;
-
+    bool isSprinting = false;
+    short sprintMeter = 100;
     short xPos = 50;
     short yPos = 50;
     int xDir = 1;
@@ -39,6 +40,7 @@ public:
     void connect();
     void startGame();
     void gameOver(unsigned char ID);
+    void manageSprint();
 
 signals:
 

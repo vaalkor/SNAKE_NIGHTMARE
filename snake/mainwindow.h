@@ -45,6 +45,10 @@ public:
 
     QImage image;
     QPainter *painter;
+    QPen *sprintBarPen;
+    QPen *bombBarPen;
+    QPen *barBackGroundPen;
+    QBrush *brush;
 
     ~MainWindow();
 signals:

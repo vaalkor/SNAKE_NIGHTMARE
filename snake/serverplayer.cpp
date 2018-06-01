@@ -102,6 +102,8 @@ void ServerPlayer::calculateStartingPosition(short &x, short &y)
 void ServerPlayer::sendWinSignal(unsigned char ID)
 {
     gameState.gameInProgress = false;
+    serverWindow->updateUI(playerList, gameState);
+
     for(QTcpSocket* socket : clients)
     {
         block.clear();
@@ -216,6 +218,7 @@ void ServerPlayer::startGameCounterSlot()
 
         gameState.gameInProgress = true;
 
+        serverWindow->updateUI(playerList, gameState);
         timer.start(1000);
     }
 }
@@ -314,7 +317,7 @@ void ServerPlayer::readyReadTcp()
                 QString data;
                 inblock >> data;
                 std::string tempStr = data.toStdString();
-                strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), 20 );
+                strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), MAX_NAME_LENGTH );
                 serverWindow->updateUI(playerList, gameState);
                 break;
             }

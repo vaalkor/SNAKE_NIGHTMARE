@@ -56,13 +56,41 @@ void ClientPlayer::iterateGameState()
             xDir = 1;
             yDir = 0;
         }
+        if(GetKeyState(VK_SHIFT) & 0x8000 && gameParameters.sprintEnabled)
+            isSprinting = true;
+        else
+            isSprinting = false;
     }
 
     xPos += xDir;
     yPos += yDir;
-
     sendPosition(clientID, xPos, yPos); //this has been chagned to a function call m8....
+
+    manageSprint();
+
+
     emit drawSignal();
+}
+
+void ClientPlayer::manageSprint()
+{
+    if(gameParameters.sprintEnabled)
+    {
+        if(isSprinting && gameState.sprintMeter > gameParameters.tickLength) //if you are sprinting... DO IT AGAIN! //I'll need to change this to something more sensible I believe...
+        {
+            xPos += xDir;
+            yPos += yDir;
+            sendPosition(clientID, xPos, yPos); //this has been chagned to a function call m8....
+
+            gameState.sprintMeter -= gameParameters.tickLength;
+        }
+
+        gameState.sprintMeter += gameParameters.sprintLength/(float)gameParameters.sprintRechargeLength * gameParameters.tickLength;
+
+        if(gameState.sprintMeter > gameParameters.sprintLength)
+            gameState.sprintMeter = gameParameters.sprintLength;
+    }
+
 }
 
 void ClientPlayer::readyReadUdp()
@@ -151,6 +179,7 @@ void ClientPlayer::readyReadTcp()
                         //if the counter has just started then we clear the previous game state array and display the timer number
                         if(gameCounter == TIMER_LENGTH)
                         {
+                            gameState.sprintMeter = gameParameters.sprintLength; //reset the sprint meter mate...
                             memset(tailArray,0, sizeof(tailArray));
                             startGameTimerOnScreen = true;
                         }

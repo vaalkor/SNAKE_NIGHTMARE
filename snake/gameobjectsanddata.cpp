@@ -12,6 +12,6 @@ PlayerInfo::PlayerInfo(){} //if I don't have a defauly constructor QHash complai
 PlayerInfo::PlayerInfo(unsigned char playerID_, QRgb color_, char* name_)
     :playerID(playerID_), color(color_)
 {
-    memset(name, 0, sizeof(char)*21);
-    strncpy(name, name_, 20);
+    memset(name, 0, sizeof(char)*MAX_NAME_LENGTH+1);
+    strncpy(name, name_, MAX_NAME_LENGTH);
 }

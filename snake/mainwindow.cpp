@@ -15,6 +15,10 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
     ui->setupUi(this);
     image = QImage(500, 500, QImage::Format_RGB32);
     painter = new QPainter(&image);
+    sprintBarPen = new QPen(Qt::green);
+    bombBarPen = new QPen(Qt::red);
+    barBackGroundPen = new QPen(Qt::gray);
+    brush = new QBrush(Qt::SolidPattern);
 
     QRect screen = QApplication::desktop()->screenGeometry(0);
 
@@ -24,6 +28,7 @@ MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHo
 
         QObject::connect(serverPlayer->serverWindow, &ServerControlWindow::rejectSignal, this, &QMainWindow::close);
         QObject::connect(serverPlayer->serverWindow, SIGNAL(startGameSignal()), serverPlayer, SLOT(startGameCounterSlot()));
+        QObject::connect(serverPlayer, SIGNAL(drawSignal()), this, SLOT(drawSlot()));
 
         move(QPoint( screen.width()*0.75-width()/2.0, screen.height()*0.75-height()/2.0 ));
 
@@ -102,6 +107,9 @@ MainWindow::~MainWindow()
     else
         clientPlayer->deleteLater();
 
+    delete sprintBarPen;
+    delete bombBarPen;
+    delete barBackGroundPen;
     delete painter;
     delete ui;
 }
@@ -132,6 +140,7 @@ void MainWindow::drawSlot()
         drawSquare(clientPlayer->xPos, clientPlayer->yPos, qRgb(255,255,255));
         if(clientPlayer->startGameTimerOnScreen)
         {
+            painter->setBrush(Qt::NoBrush);
             QPen pen( playerColors[ clientPlayer->clientID ] );
             pen.setWidthF(3);
             painter->setPen(pen);
@@ -143,6 +152,18 @@ void MainWindow::drawSlot()
             painter->drawEllipse(QPoint( clientPlayer->xPos*5, clientPlayer->yPos*5), 15, 15);
         }
 
+        if(clientPlayer->gameParameters.sprintEnabled)
+        {
+            float sprintProportion = clientPlayer->gameState.sprintMeter/(float)clientPlayer->gameParameters.sprintLength;
+            brush->setColor(Qt::gray);
+            painter->setBrush(*brush);
+            painter->setPen(*barBackGroundPen);
+            painter->drawRect(0.1*image.width(), 0.9*image.height(), 0.07*image.width(), 0.005*image.height());
+            brush->setColor(Qt::green);
+            painter->setBrush(*brush);
+            painter->setPen(*sprintBarPen);
+            painter->drawRect(0.1*image.width(), 0.9*image.height(), 0.07*image.width()*sprintProportion, 0.005*image.height());
+        }
     }
 
     update();

@@ -3,6 +3,7 @@
 
 #define MAX_NUM_PLAYERS 20
 #define TIMER_LENGTH 3
+#define MAX_NAME_LENGTH 20
 
 #include <vector>
 #include <QRgb>
@@ -15,7 +16,7 @@ class PlayerInfo
 public:
     unsigned char playerID;
     QRgb color;
-    char name[21];
+    char name[MAX_NAME_LENGTH+1]; //+1 for the null terminator
     bool alive = true;
 
     PlayerInfo();
@@ -27,6 +28,8 @@ class GameState
 public:
     bool gameInProgress = false;
     short numPlayers = 0;
+    float sprintMeter = 1000; //set this to sprint length later on mate... yihyihyihm8
+    float bombCharge = 0;
 };
 
 class GameParameters
@@ -35,12 +38,19 @@ public:
     int width = 100;
     int height = 100;
 
-    bool enableSprint = true;
-    bool enableBombs = true;
+    short tickLength = 33;              //how many milliseconds to wait between frames. The lower, the faster the game...
 
-    bool normalMode = true;
-    bool revengeMode = false;
-    bool PUBGmode = false;
+    bool sprintEnabled = true;
+    bool bombsEnabled = true;
+
+    int sprintLength = 1000;            //total milliseconds of sprinting in the sprint bar...              (1 second currently)
+    int sprintRechargeLength = 20000;   //length of time in milliseconds to recharge an entire sprint bar   (20 seconds currently)
+
+    int bombRadius = 4;
+    int bombChargeTime = 10000;
+
+    bool revengeModeEnabled = false;
+    bool PUBGmodeEnabled = false;
 };
 
 enum class MessageType : unsigned char
