@@ -54,6 +54,8 @@ public:
 
     bool revengeModeEnabled = false;
     bool PUBGmodeEnabled = false;
+
+    int sizeInBytes();
 };
 
 QDataStream& operator<<(QDataStream &out, GameParameters &obj);

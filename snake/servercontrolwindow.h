@@ -39,6 +39,12 @@ private slots:
 
     void on_enableRevengeModeCheckbox_clicked(bool checked);
 
+    void on_sprintLengthInputBox_textEdited(const QString &arg1);
+
+    void on_sprintRechargeLengthInputBox_textEdited(const QString &arg1);
+
+    void on_bombRechargeLengthInputBox_textEdited(const QString &arg1);
+
 private:
     Ui::ServerControlWindow *ui;
 };

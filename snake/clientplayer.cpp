@@ -149,7 +149,7 @@ void ClientPlayer::readyReadTcp()
 
             while(dataSize)
             {
-                qDebug() << "buffer count before enum read: " << buffer.count();
+                //qDebug() << "buffer count before enum read: " << buffer.count();
 
                 unsigned char mTypeChar;
                 inblock >> mTypeChar;
@@ -157,15 +157,15 @@ void ClientPlayer::readyReadTcp()
                 mType = static_cast<MessageType>(mTypeChar);
                 dataSize -= sizeof(unsigned char);
 
-                qDebug() << "buffer count after enum read: " << buffer.count();
+                //qDebug() << "buffer count after enum read: " << buffer.count();
 
                 qDebug() << "message type: " << (unsigned int)mType;
 
                 unsigned char tempID;
                 short x,y;
 
-                qDebug() << "before SWITCH STATEMENT!...bytes available: " << tcpSocket.bytesAvailable();
-
+                //qDebug() << "before SWITCH STATEMENT!...bytes available: " << tcpSocket.bytesAvailable();
+                qDebug() << "dataSize before switch mate!!!!";
                 switch(mType){
                     case MessageType::BOMB_ACTIVATION :
                         qDebug() << "bomb activation";
@@ -210,12 +210,12 @@ void ClientPlayer::readyReadTcp()
                             startGameTimerOnScreen = true;
                         }
 
-                        qDebug() << "client timer update: " << gameCounter;
+                        //qDebug() << "client timer update: " << gameCounter;
                         dataSize -= sizeof(short);
                         emit drawSignal();
                         break;
                     case MessageType::PLAYER_ID_ASSIGNMENT:
-                        qDebug() << "buffer count before assignment: " << buffer.count();
+                        //qDebug() << "buffer count before assignment: " << buffer.count();
                         inblock >> tempID;
                         dataSize -= sizeof(unsigned char);
                         clientID = tempID;
@@ -230,13 +230,14 @@ void ClientPlayer::readyReadTcp()
                         break;
                     case MessageType::GAME_PARAMETERS:
                         inblock >> gameParameters;
-                        dataSize -= sizeof(gameParameters);
-                        qDebug() << "//////////////////////////--------sprintenabld: " << gameParameters.sprintEnabled;
-                        qDebug() << "//////////////////////////--------bombs enabled: " << gameParameters.bombsEnabled;
-                        qDebug() << "//////////////////////////--------PUBG mode enabled: " << gameParameters.PUBGmodeEnabled;
+                        dataSize -= gameParameters.sizeInBytes();
+                        //qDebug() << "//////////////////////////--------sprintenabld: " << gameParameters.sprintEnabled;
+                        //qDebug() << "//////////////////////////--------bombs enabled: " << gameParameters.bombsEnabled;
+                        //qDebug() << "//////////////////////////--------PUBG mode enabled: " << gameParameters.PUBGmodeEnabled;
                         break;
                 }
-                qDebug() << "after switch!...bytes available: " << tcpSocket.bytesAvailable();
+                qDebug() << "dataSize after switch: " << dataSize;
+                //qDebug() << "after switch!...bytes available: " << tcpSocket.bytesAvailable();
             }
 
         }

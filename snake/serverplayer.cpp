@@ -206,6 +206,7 @@ void ServerPlayer::clientDisconnected()
 
 void ServerPlayer::sendGameParameters()
 {
+    qDebug() << "sizeof(gameParameters): " << sizeof(GameParameters);
     block.clear();
     QDataStream out(&block, QIODevice::WriteOnly);
     out << (unsigned char)MessageType::GAME_PARAMETERS;
@@ -242,7 +243,6 @@ void ServerPlayer::startGameCounterSlot()
 
 void ServerPlayer::iterateStartGameCounter()
 {
-    startGameCounter = TIMER_LENGTH;
 
     if(startGameCounter == 0)   //start the game!...
     {
@@ -264,7 +264,7 @@ void ServerPlayer::iterateStartGameCounter()
         out << startGameCounter;
 
         for(auto &socket : clients)
-            socket->write(block);
+            socket->write(block);  //1+2+1+
 
         if(startGameCounter == TIMER_LENGTH) //putting this here is a shitty solution but it works for the moment. I think I'll add a signal to inform the client that it should clear it's tail array instead of relying on this very stateful solution
         {
@@ -281,7 +281,6 @@ void ServerPlayer::iterateStartGameCounter()
                 out << (unsigned char)MessageType::START_POSITION;
                 out << idList[socket]; //send the id of that player...
                 out << x << y;
-                socket->write(block);
 
                 //now write out that starting position to all clients in the game...
                 for(auto &clientSocket : clients)

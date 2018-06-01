@@ -16,13 +16,27 @@ PlayerInfo::PlayerInfo(unsigned char playerID_, QRgb color_, char* name_)
     strncpy(name, name_, MAX_NAME_LENGTH);
 }
 
+GameParameters::sizeInBytes()
+{
+    return   sizeof(width)
+            +sizeof(height)
+            +sizeof(tickLength)
+            +sizeof(sprintEnabled)
+            +sizeof(bombsEnabled)
+            +sizeof(sprintLength)
+            +sizeof(sprintRechargeLength)
+            +sizeof(bombRadius)
+            +sizeof(bombChargeTime)
+            +sizeof(revengeModeEnabled)
+            +sizeof(PUBGmodeEnabled);
+}
+
 QDataStream& operator<<(QDataStream &out, GameParameters &obj)
 {
     out << obj.width;
     out << obj.height;
     out << obj.tickLength;
     out << obj.sprintEnabled;
-    out << obj.sprintLength;
     out << obj.bombsEnabled;
     out << obj.sprintLength;
     out << obj.sprintRechargeLength;
@@ -39,7 +53,6 @@ QDataStream& operator>>(QDataStream& in, GameParameters &obj)
     in >>  obj.height;
     in >>  obj.tickLength;
     in >>  obj.sprintEnabled;
-    in >>  obj.sprintLength;
     in >>  obj.bombsEnabled;
     in >>  obj.sprintLength;
     in >>  obj.sprintRechargeLength;

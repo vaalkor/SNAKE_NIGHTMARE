@@ -77,3 +77,30 @@ void ServerControlWindow::on_enableRevengeModeCheckbox_clicked(bool checked)
 {
     gameParameters->revengeModeEnabled = checked;
 }
+
+void ServerControlWindow::on_sprintLengthInputBox_textEdited(const QString &arg1)
+{
+    float value = arg1.toFloat();
+    if(value == 0)
+        value = 1;
+    value *= 1000;
+    gameParameters->sprintLength = value;
+}
+
+void ServerControlWindow::on_sprintRechargeLengthInputBox_textEdited(const QString &arg1)
+{
+    float value = arg1.toFloat();
+    if(value == 0)
+        value = 20;
+    value *= 1000;
+    gameParameters->sprintRechargeLength = value;
+}
+
+void ServerControlWindow::on_bombRechargeLengthInputBox_textEdited(const QString &arg1)
+{
+    float value = arg1.toFloat();
+    if(value == 0)
+        value = 10;
+    value *= 1000;
+    gameParameters->bombChargeTime = value;
+}
