@@ -308,8 +308,12 @@ void ServerPlayer::readyReadTcp()
 
             if(mType == MessageType::BOMB_ACTIVATION)
             {
-                //qDebug() << "bomb activation";
-                //NEED TO HANDLE THIS LATER ON M8....
+                qDebug() << "bomb activation";
+                short x,y;
+                inblock >> x;
+                inblock >> y;
+                triggerBomb(x,y);
+                sendBombMessage(x,y);
                 break;
             }else if(mType == MessageType::NOTIFY_SERVER_OF_PLAYER_NAME)
             {
@@ -322,6 +326,19 @@ void ServerPlayer::readyReadTcp()
                 break;
             }
         }
+}
+
+//you could make this a bit more OO mate.... yeah...
+void ServerPlayer::sendBombMessage(short x, short y)
+{
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::BOMB_ACTIVATION;
+    out << x;
+    out << y;
+
+    for(auto &socket : clients)
+        socket->write(block);
 }
 
 void ServerPlayer::receivePosition(unsigned char ID, short x, short y)

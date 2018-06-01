@@ -9,6 +9,21 @@ Player::Player(QObject *parent) : QObject(parent)
     memset(tailArray, 0 , sizeof(unsigned char)*100*100);
 }
 
+void Player::triggerBomb(short x, short y)
+{
+    int minX = x-gameParameters.bombRadius; int minY = y-gameParameters.bombRadius;
+    int maxX = x+gameParameters.bombRadius; int maxY = y+gameParameters.bombRadius;
+
+    if(minX < 0) minX = 0;
+    if(minY < 0) minY = 0;
+    if(maxX >= gameParameters.height);
+    if(maxY >= gameParameters.width);
+
+    for(unsigned int y=minY; y<=maxY; y++)
+        for(unsigned int x=minX; x<= maxX; x++)
+            tailArray[x][y] = 0;
+}
+
 void Player::resizeTailArray()
 {
     //this will resize the tail array to the values specified by the game info class... cba to do it for now though...

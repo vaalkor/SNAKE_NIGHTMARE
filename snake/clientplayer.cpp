@@ -15,6 +15,8 @@ ClientPlayer::ClientPlayer(QHostAddress address_, QObject *parent) : address(add
 
 void ClientPlayer::iterateGameState()
 {
+    isSprinting = false;
+
     if(inFocus)
     {
         if(GetKeyState(VK_LEFT) & 0x8000)
@@ -58,18 +60,29 @@ void ClientPlayer::iterateGameState()
         }
         if(GetKeyState(VK_SHIFT) & 0x8000 && gameParameters.sprintEnabled)
             isSprinting = true;
-        else
-            isSprinting = false;
+        if(GetKeyState(VK_SPACE) & 0x8000 && gameParameters.bombsEnabled)
+            if(gameState.bombCharge >= gameParameters.bombChargeTime)
+                sendBombMessage();
     }
 
     xPos += xDir;
     yPos += yDir;
     sendPosition(clientID, xPos, yPos); //this has been chagned to a function call m8....
 
+    manageBomb();
     manageSprint();
 
-
     emit drawSignal();
+}
+
+void ClientPlayer::manageBomb()
+{
+    if(gameParameters.bombsEnabled)
+    {
+        gameState.bombCharge += gameParameters.tickLength;
+        if(gameState.bombCharge > gameParameters.bombChargeTime)
+            gameState.bombCharge = gameParameters.bombChargeTime;
+    }
 }
 
 void ClientPlayer::manageSprint()
@@ -147,12 +160,19 @@ void ClientPlayer::readyReadTcp()
                 qDebug() << "buffer count after enum read: " << buffer.count();
 
                 qDebug() << "message type: " << (unsigned int)mType;
+
                 unsigned char tempID;
+                short x,y;
 
                 qDebug() << "before SWITCH STATEMENT!...bytes available: " << tcpSocket.bytesAvailable();
+
                 switch(mType){
                     case MessageType::BOMB_ACTIVATION :
-                        //qDebug() << "bomb activation";
+                        qDebug() << "bomb activation";
+                        inblock >> x;
+                        inblock >> y;
+                        triggerBomb(x,y);
+                        dataSize -= sizeof(short); dataSize -= sizeof(short);
                         break;
                     case MessageType::PLAYER_DIED :
                         //qDebug() << "PLAYER DIED!!!";
@@ -180,6 +200,7 @@ void ClientPlayer::readyReadTcp()
                         if(gameCounter == TIMER_LENGTH)
                         {
                             gameState.sprintMeter = gameParameters.sprintLength; //reset the sprint meter mate...
+                            gameState.bombCharge = 0;
                             memset(tailArray,0, sizeof(tailArray));
                             startGameTimerOnScreen = true;
                         }
@@ -195,7 +216,6 @@ void ClientPlayer::readyReadTcp()
                         clientID = tempID;
                         break;
                     case MessageType::START_POSITION:
-                        short x,y;
                         inblock >> tempID;
                         inblock >> x;
                         inblock >> y;
@@ -232,6 +252,21 @@ void ClientPlayer::sendName(std::string name)
 
     out << (unsigned char)MessageType::NOTIFY_SERVER_OF_PLAYER_NAME;
     out << QString::fromStdString(name);
+
+    tcpSocket.write(block);
+}
+
+void ClientPlayer::sendBombMessage()
+{
+    gameState.bombCharge = 0;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_4_0);
+
+    out << (unsigned char)MessageType::BOMB_ACTIVATION;
+    out << xPos;
+    out << yPos;
 
     tcpSocket.write(block);
 }

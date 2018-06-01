@@ -35,11 +35,14 @@ public:
     void sendName(std::string name);
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;
+
+    void sendBombMessage();
     void receiveStartPosition(unsigned char ID, short x, short y);
     void sendPos(short x, short y);
     void connect();
     void startGame();
     void gameOver(unsigned char ID);
+    void manageBomb();
     void manageSprint();
 
 signals:

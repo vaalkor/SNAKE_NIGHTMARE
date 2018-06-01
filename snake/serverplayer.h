@@ -35,6 +35,7 @@ public:
     void gameOver(unsigned char winnerID);
     void sendWinSignal(unsigned char ID);
     void checkWinConditions();
+    void sendBombMessage(short x, short y);
 
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;

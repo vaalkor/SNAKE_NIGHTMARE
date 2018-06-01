@@ -164,6 +164,19 @@ void MainWindow::drawSlot()
             painter->setPen(*sprintBarPen);
             painter->drawRect(0.1*image.width(), 0.9*image.height(), 0.07*image.width()*sprintProportion, 0.005*image.height());
         }
+
+        if(clientPlayer->gameParameters.bombsEnabled)
+        {
+            float bombProportion = clientPlayer->gameState.bombCharge/(float)clientPlayer->gameParameters.bombChargeTime;
+            brush->setColor(Qt::gray);
+            painter->setBrush(*brush);
+            painter->setPen(*barBackGroundPen);
+            painter->drawRect(0.1*image.width(), 0.88*image.height(), 0.07*image.width(), 0.005*image.height());
+            brush->setColor(Qt::green);
+            painter->setBrush(*brush);
+            painter->setPen(*sprintBarPen);
+            painter->drawRect(0.1*image.width(), 0.88*image.height(), 0.07*image.width()*bombProportion, 0.005*image.height());
+        }
     }
 
     update();

@@ -27,9 +27,13 @@ public:
 
     unsigned char tailArray[100][100]; //this is constant size at the moment but it will end up being of variable size mate..
 
+    void triggerBomb(short x, short y);
     void resizeTailArray();
+
     virtual void sendPosition(unsigned char ID, short x, short y) = 0;
     virtual void receivePosition(unsigned char ID, short x, short y) = 0;
+
+
 signals:
     void drawSignal();
 public slots:
