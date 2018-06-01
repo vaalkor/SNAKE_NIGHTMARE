@@ -5,10 +5,10 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDesktopWidget>
+#include "gameobjectsanddata.h"
 
-ServerControlWindow::ServerControlWindow(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ServerControlWindow)
+ServerControlWindow::ServerControlWindow(GameParameters *params_, QWidget *parent)
+    : gameParameters(params_), QDialog(parent), ui(new Ui::ServerControlWindow)
 {
     ui->setupUi(this);
     ui->statusLabel->setText( QString("NO GAME IN PROGRESS") );
@@ -50,4 +50,30 @@ void ServerControlWindow::on_startGameButton_clicked()
 void ServerControlWindow::on_quitButton_clicked()
 {
     emit rejectSignal();
+}
+
+void ServerControlWindow::on_enableSprintCheckbox_clicked(bool checked)
+{
+    gameParameters->sprintEnabled = checked;
+}
+
+void ServerControlWindow::on_enableBombsCheckbox_clicked(bool checked)
+{
+    gameParameters->bombsEnabled = checked;
+}
+
+void ServerControlWindow::on_speedInputSlider_sliderMoved(int position)
+{
+    float proportion = (1.0 - ( position/100.0 ) ) ;
+    gameParameters->tickLength = MIN_TICKRATE + proportion * (MAX_TICKRATE - MIN_TICKRATE);
+}
+
+void ServerControlWindow::on_enablePUBGModeCheckbox_clicked(bool checked)
+{
+    gameParameters->PUBGmodeEnabled = checked;
+}
+
+void ServerControlWindow::on_enableRevengeModeCheckbox_clicked(bool checked)
+{
+    gameParameters->revengeModeEnabled = checked;
 }

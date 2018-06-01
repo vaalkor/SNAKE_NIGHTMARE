@@ -29,6 +29,7 @@ public:
 
     std::vector<QTcpSocket *> clients;
 
+    void sendGameParameters();
     void sendDeathSignal(unsigned char ID);
     void calculateStartingPosition(short &x, short &y);
 

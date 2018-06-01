@@ -7,7 +7,7 @@ ServerPlayer::ServerPlayer(QObject *parent) : Player(parent)
 
     clientUdp->bind(6666);
 
-    serverWindow = new ServerControlWindow();
+    serverWindow = new ServerControlWindow(&gameParameters);
 
     memset(playerPositionGrid, 0, sizeof(playerPositionGrid));
 
@@ -203,11 +203,26 @@ void ServerPlayer::clientDisconnected()
     clientSocket->deleteLater();
 }
 
+
+void ServerPlayer::sendGameParameters()
+{
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::GAME_PARAMETERS;
+    out << gameParameters;
+
+    for(auto &socket : clients)
+        socket->write(block);
+}
+
+//this starts the counter, which runs for a few seconds. each tick of the clock calls iterateGameCounter
 void ServerPlayer::startGameCounterSlot()
 {
     memset(tailArray, 0, sizeof(tailArray));
 
-    startGameCounter = 3;
+    startGameCounter = TIMER_LENGTH;
+
+    sendGameParameters();
 
     qDebug() << "startgame button pressed... sending start game messages...";
     if(gameState.numPlayers > 0)
@@ -224,13 +239,13 @@ void ServerPlayer::startGameCounterSlot()
         timer.start(1000);
     }
 }
+
 void ServerPlayer::iterateStartGameCounter()
 {
-    qDebug() << "GAME COUNTER: " << startGameCounter;
+    startGameCounter = TIMER_LENGTH;
+
     if(startGameCounter == 0)   //start the game!...
     {
-        startGameCounter = 3;
-
         block.clear();
         QDataStream out(&block, QIODevice::WriteOnly);
         out << (unsigned char)MessageType::GAME_BEGIN;
@@ -241,7 +256,6 @@ void ServerPlayer::iterateStartGameCounter()
         serverWindow->updateUI(playerList, gameState);
 
         timer.stop();
-
     }else                       //send the counter...
     {
         block.clear();
@@ -252,7 +266,7 @@ void ServerPlayer::iterateStartGameCounter()
         for(auto &socket : clients)
             socket->write(block);
 
-        if(startGameCounter == 3) //putting this here is a shitty solution but it works for the moment. I think I'll add a signal to inform the client that it should clear it's tail array instead of relying on this very stateful solution
+        if(startGameCounter == TIMER_LENGTH) //putting this here is a shitty solution but it works for the moment. I think I'll add a signal to inform the client that it should clear it's tail array instead of relying on this very stateful solution
         {
             //this needs to be changed. the starting position of EACH PLAYER needs to be sent to every other player mate.. I'll do that tomorrow
             //I also need to add some checks so that ONCE the game start button has been clicked, no more people can join.... cool mate cool.

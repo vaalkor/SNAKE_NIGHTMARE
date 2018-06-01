@@ -227,7 +227,14 @@ void ClientPlayer::readyReadTcp()
                         dataSize -= sizeof(unsigned char);
                         dataSize -= sizeof(short); dataSize -= sizeof(short);
                         receiveStartPosition(tempID, x, y);
-
+                        break;
+                    case MessageType::GAME_PARAMETERS:
+                        inblock >> gameParameters;
+                        dataSize -= sizeof(gameParameters);
+                        qDebug() << "//////////////////////////--------sprintenabld: " << gameParameters.sprintEnabled;
+                        qDebug() << "//////////////////////////--------bombs enabled: " << gameParameters.bombsEnabled;
+                        qDebug() << "//////////////////////////--------PUBG mode enabled: " << gameParameters.PUBGmodeEnabled;
+                        break;
                 }
                 qDebug() << "after switch!...bytes available: " << tcpSocket.bytesAvailable();
             }

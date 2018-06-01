@@ -48,6 +48,9 @@
    <property name="text">
     <string>Enable Sprint</string>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QCheckBox" name="enableBombsCheckbox">
    <property name="geometry">
@@ -61,6 +64,9 @@
    <property name="text">
     <string>Enable Bombs</string>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QSlider" name="speedInputSlider">
    <property name="geometry">
@@ -72,7 +78,7 @@
     </rect>
    </property>
    <property name="minimum">
-    <number>10</number>
+    <number>0</number>
    </property>
    <property name="maximum">
     <number>100</number>
@@ -87,14 +93,14 @@
   <widget class="QLabel" name="speedModifierLabel">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>70</x>
      <y>120</y>
-     <width>141</width>
+     <width>91</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>   Speed modifier (10-100%) </string>
+    <string>   Speed modifier </string>
    </property>
   </widget>
   <widget class="QLabel" name="gameOptionsSlider">
@@ -120,49 +126,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>______Game Modes______</string>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="normalModeRadioButton">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>210</y>
-     <width>81</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Standard</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="revengeModeRadioButton">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>230</y>
-     <width>91</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Revenge</string>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="PUBGModeRadioButton">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>250</y>
-     <width>101</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>PUBG</string>
+    <string>______Game Modifiers______</string>
    </property>
   </widget>
   <widget class="QPushButton" name="startGameButton">
@@ -213,6 +177,32 @@
    </property>
    <property name="scaledContents">
     <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="enablePUBGModeCheckbox">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>210</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PUBG Mode</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="enableRevengeModeCheckbox">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>240</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Revenge Mode</string>
    </property>
   </widget>
  </widget>

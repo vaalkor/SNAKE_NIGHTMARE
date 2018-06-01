@@ -4,10 +4,13 @@
 #define MAX_NUM_PLAYERS 20
 #define TIMER_LENGTH 3
 #define MAX_NAME_LENGTH 20
+#define MIN_TICKRATE 33
+#define MAX_TICKRATE 66
 
 #include <vector>
 #include <QRgb>
 #include <cstring>
+#include <QDataStream>
 
 extern const std::vector<QRgb> playerColors;
 
@@ -53,6 +56,9 @@ public:
     bool PUBGmodeEnabled = false;
 };
 
+QDataStream& operator<<(QDataStream &out, GameParameters &obj);
+QDataStream& operator>>(QDataStream &in,  GameParameters &obj);
+
 enum class MessageType : unsigned char
 {
     PLAYER_CONNECTED,
@@ -67,7 +73,7 @@ enum class MessageType : unsigned char
     GAME_STOPPED,
     TIMER_UPDATE,
     START_POSITION,
-    GAME_INFO,
+    GAME_PARAMETERS,
     COUNT //this is a cheeky way of accessing the number of enum entries in code.
 };
 
