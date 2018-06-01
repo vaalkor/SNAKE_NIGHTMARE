@@ -200,8 +200,10 @@ void ClientPlayer::readyReadTcp()
                         startGameTimer = gameCounter;
 
                         //if the counter has just started then we clear the previous game state array and display the timer number
+                        //INSERT THINGS THAT NEED TO HAPPEN AT THE START OF THE GAME HERE!!!
                         if(gameCounter == TIMER_LENGTH)
                         {
+                            printWinnerName = false;
                             gameState.sprintMeter = gameParameters.sprintLength; //reset the sprint meter mate...
                             gameState.bombCharge = 0;
                             memset(tailArray,0, sizeof(tailArray));
