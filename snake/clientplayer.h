@@ -9,6 +9,7 @@
 #include <QTcpSocket>
 #include <QUdpSocket>
 #include <QHostAddress>
+#include <QPoint>
 
 class ClientPlayer : public Player
 {
@@ -22,14 +23,17 @@ public:
     QHostAddress address;
 
     bool startGameTimerOnScreen = false;
-    short startGameTimer = 3;
+    short startGameTimer = TIMER_LENGTH;
+
+    bool drawBomb = false;
+    QPoint bombPosition;
 
     bool printWinnerName = false;
     QString winnerName;
     short winnerID;
     bool inFocus = true;
     bool isSprinting = false;
-    short sprintMeter = 100;
+
     short xPos = 50;
     short yPos = 50;
     int xDir = 1;

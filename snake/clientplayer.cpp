@@ -16,6 +16,7 @@ ClientPlayer::ClientPlayer(QHostAddress address_, QObject *parent) : address(add
 void ClientPlayer::iterateGameState()
 {
     isSprinting = false;
+    drawBomb = false;
 
     if(inFocus)
     {
@@ -197,6 +198,7 @@ void ClientPlayer::readyReadTcp()
                     case MessageType::TIMER_UPDATE :
                         short gameCounter;
                         inblock >> gameCounter;
+                        //buffer.
                         startGameTimer = gameCounter;
 
                         //if the counter has just started then we clear the previous game state array and display the timer number
@@ -274,6 +276,8 @@ void ClientPlayer::sendName(std::string name)
 void ClientPlayer::sendBombMessage()
 {
     gameState.bombCharge = 0;
+    drawBomb = true;
+    bombPosition = QPoint(xPos, yPos);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

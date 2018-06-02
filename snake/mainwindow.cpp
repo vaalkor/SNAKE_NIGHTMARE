@@ -137,6 +137,8 @@ void MainWindow::drawSlot()
 
     if(!isServer)
     {
+        GameParameters &clientParameters = clientPlayer->gameParameters;
+
         drawSquare(clientPlayer->xPos, clientPlayer->yPos, qRgb(255,255,255));
         if(clientPlayer->startGameTimerOnScreen)
         {
@@ -152,9 +154,9 @@ void MainWindow::drawSlot()
             painter->drawEllipse(QPoint( clientPlayer->xPos*5, clientPlayer->yPos*5), 15, 15);
         }
 
-        if(clientPlayer->gameParameters.sprintEnabled)
+        if(clientParameters.sprintEnabled)
         {
-            float sprintProportion = clientPlayer->gameState.sprintMeter/(float)clientPlayer->gameParameters.sprintLength;
+            float sprintProportion = clientPlayer->gameState.sprintMeter/(float)clientParameters.sprintLength;
             brush->setColor(Qt::gray);
             painter->setBrush(*brush);
             painter->setPen(*barBackGroundPen);
@@ -165,16 +167,16 @@ void MainWindow::drawSlot()
             painter->drawRect(0.1*image.width(), 0.9*image.height(), 0.07*image.width()*sprintProportion, 0.005*image.height());
         }
 
-        if(clientPlayer->gameParameters.bombsEnabled)
+        if(clientParameters.bombsEnabled)
         {
-            float bombProportion = clientPlayer->gameState.bombCharge/(float)clientPlayer->gameParameters.bombChargeTime;
+            float bombProportion = clientPlayer->gameState.bombCharge/(float)clientParameters.bombChargeTime;
             brush->setColor(Qt::gray);
             painter->setBrush(*brush);
             painter->setPen(*barBackGroundPen);
             painter->drawRect(0.1*image.width(), 0.88*image.height(), 0.07*image.width(), 0.005*image.height());
             brush->setColor(Qt::red);
             painter->setBrush(*brush);
-            painter->setPen(*sprintBarPen);
+            painter->setPen(*bombBarPen);
             painter->drawRect(0.1*image.width(), 0.88*image.height(), 0.07*image.width()*bombProportion, 0.005*image.height());
         }
         if(clientPlayer->printWinnerName)
@@ -188,6 +190,20 @@ void MainWindow::drawSlot()
             else
                 text = clientPlayer->winnerName + "\nWINS m8.";
             painter->drawText(image.rect(), Qt::AlignCenter, text);
+        }
+        if(clientPlayer->drawBomb)
+        {
+            int minX = clientPlayer->bombPosition.x() - clientParameters.bombRadius; int minY = clientPlayer->bombPosition.y() - clientParameters.bombRadius;
+            int maxX = clientPlayer->bombPosition.x() + clientParameters.bombRadius; int maxY = clientPlayer->bombPosition.y() + clientParameters.bombRadius;
+
+            if(minX < 0) minX = 0;
+            if(minY < 0) minY = 0;
+            if(maxX >= clientParameters.width)  maxX = clientParameters.width  -1;
+            if(maxY >= clientParameters.height) maxY = clientParameters.height -1;
+
+            for(unsigned int y=minY; y<=maxY; y++)
+                for(unsigned int x=minX; x<= maxX; x++)
+                    drawSquare(x,y, qRgb(255,0,0));
         }
     }
 

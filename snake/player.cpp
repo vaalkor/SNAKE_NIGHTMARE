@@ -16,8 +16,8 @@ void Player::triggerBomb(short x, short y)
 
     if(minX < 0) minX = 0;
     if(minY < 0) minY = 0;
-    if(maxX >= gameParameters.height);
-    if(maxY >= gameParameters.width);
+    if(maxX >= gameParameters.width)  maxX = gameParameters.width  -1;
+    if(maxY >= gameParameters.height) maxY = gameParameters.height -1;
 
     for(unsigned int y=minY; y<=maxY; y++)
         for(unsigned int x=minX; x<= maxX; x++)
