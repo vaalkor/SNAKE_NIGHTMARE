@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QHash>
+
 #include "gameobjectsanddata.h"
 
 namespace Ui {

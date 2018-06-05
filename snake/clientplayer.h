@@ -1,15 +1,17 @@
 #ifndef CLIENTPLAYER_H
 #define CLIENTPLAYER_H
 
-#include "windows.h"
-#include "gameobjectsanddata.h"
-
 #include <QObject>
-#include "player.h"
 #include <QTcpSocket>
 #include <QUdpSocket>
 #include <QHostAddress>
 #include <QPoint>
+#include <QKeyEvent>
+
+#include "player.h"
+#include "gameobjectsanddata.h"
+
+
 
 class ClientPlayer : public Player
 {
@@ -36,8 +38,17 @@ public:
 
     short xPos = 50;
     short yPos = 50;
+    short tempxPos1=0; short tempyPos1=0;
+    short tempxPos2=0; short tempyPos2=0;
     int xDir = 1;
     int yDir = 0;
+
+    QHash<Qt::Key, bool> keysPressed;
+
+    int tempCounter=0;
+
+    void handleKeyPress(QKeyEvent *event);
+    void handleKeyReleased(QKeyEvent *event);
 
     void resetGameState();
     void sendName(std::string name);

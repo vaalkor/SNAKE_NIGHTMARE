@@ -1,11 +1,13 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <QOBject>
 #include <random>
+
+#include <QOBject>
 #include <QHash>
 #include <QTimer>
 #include <QByteArray>
+
 #include "gameobjectsanddata.h"
 //#include <   include tcp server... for game info...
 

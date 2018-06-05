@@ -1,8 +1,8 @@
 #include "mainwindow.h"
-#include <QApplication>
-
-#include <QThread>
 #include "serverclientselection.h"
+
+#include <QApplication>
+#include <QThread>
 #include <QHash>
 #include <QDebug>
 #include <QRgb>

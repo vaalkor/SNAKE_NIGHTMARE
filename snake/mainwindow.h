@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QThread>
 #include <QMainWindow>
 #include <QImage>
 #include <QPen>
@@ -42,6 +41,8 @@ public:
     void drawSquare(short x, short y, QRgb color);
 
     virtual bool event(QEvent *e);
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
 
     QImage image;
     QPainter *painter;

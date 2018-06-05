@@ -1,8 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "servercontrolwindow.h"
+
 #include <QHostAddress>
 #include <QDesktopWidget>
-#include "servercontrolwindow.h"
 
 MainWindow::MainWindow(bool isServer_, std::string name_, bool testingMode_, QHostAddress serverAddress_, QWidget *parent) :
     QMainWindow(parent),
@@ -215,9 +216,18 @@ void MainWindow::drawSlot()
                 for(unsigned int x=minX; x<= maxX; x++)
                     drawSquare(x,y, qRgb(255,0,0));
         }
-
-
     }
 
     update();
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if(!isServer)
+        clientPlayer->handleKeyPress(event);
+}
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if(!isServer)
+        clientPlayer->handleKeyReleased(event);
 }

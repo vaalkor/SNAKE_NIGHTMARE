@@ -8,8 +8,9 @@
 #define MAX_TICKRATE 66
 
 #include <vector>
-#include <QRgb>
 #include <cstring>
+
+#include <QRgb>
 #include <QDataStream>
 
 extern const std::vector<QRgb> playerColors;
@@ -43,7 +44,7 @@ public:
     int width = 100;
     int height = 100;
 
-    short tickLength = 33;              //how many milliseconds to wait between frames. The lower, the faster the game...
+    short tickLength = MAX_TICKRATE;    //how many milliseconds to wait between frames. The lower, the faster the game...
 
     bool sprintEnabled = true;
     bool bombsEnabled = true;

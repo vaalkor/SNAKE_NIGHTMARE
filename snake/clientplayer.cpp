@@ -13,58 +13,62 @@ ClientPlayer::ClientPlayer(QHostAddress address_, QObject *parent) : address(add
     QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(iterateGameState()));
 }
 
+void ClientPlayer::handleKeyPress(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Left)
+        keysPressed[Qt::Key_Left] = true;
+    if(event->key() == Qt::Key_Right)
+        keysPressed[Qt::Key_Right] = true;
+    if(event->key() == Qt::Key_Up)
+        keysPressed[Qt::Key_Up] = true;
+    if(event->key() == Qt::Key_Down)
+        keysPressed[Qt::Key_Down] = true;
+    if(event->key() == Qt::Key_Shift)
+        keysPressed[Qt::Key_Shift] = true;
+    if(event->key() == Qt::Key_Space)
+        keysPressed[Qt::Key_Space] = true;
+}
+void ClientPlayer::handleKeyReleased(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Left)
+        keysPressed[Qt::Key_Left] = false;
+    if(event->key() == Qt::Key_Right)
+        keysPressed[Qt::Key_Right] = false;
+    if(event->key() == Qt::Key_Up)
+        keysPressed[Qt::Key_Up] = false;
+    if(event->key() == Qt::Key_Down)
+        keysPressed[Qt::Key_Down] = false;
+    if(event->key() == Qt::Key_Shift)
+        keysPressed[Qt::Key_Shift] = false;
+    if(event->key() == Qt::Key_Space)
+        keysPressed[Qt::Key_Space] = false;
+}
+
 void ClientPlayer::iterateGameState()
 {
     isSprinting = false;
     drawBomb = false;
 
-    if(inFocus)
-    {
-        if(GetKeyState(VK_LEFT) & 0x8000)
-        {
-            if(xDir != 1)
-            {
-                xDir = -1;
-                yDir = 0;
-            }
-        }
-        if(GetKeyState(VK_RIGHT) & 0x8000)
-        {
-            if(xDir != -1)
-            {
-                xDir = 1;
-                yDir = 0;
-            }
-        }
-        if(GetKeyState(VK_UP) & 0x8000)
-        {
-            if(yDir != 1)
-            {
-                xDir = 0;
-                yDir = -1;
-            }
-        }
-        if(GetKeyState(VK_DOWN) & 0x8000)
-        {
-            if(yDir != -1)
-            {
-                xDir = 0;
-                yDir = 1;
-            }
-        }
-        if(GetKeyState(VK_ESCAPE) & 0x8000 || GetKeyState(VK_RETURN) & 0x8000)
-        {
-            xPos = 50;
-            yPos = 50;
-            xDir = 1;
-            yDir = 0;
-        }
-        if(GetKeyState(VK_SHIFT) & 0x8000 && gameParameters.sprintEnabled)
-            isSprinting = true;
-        if(GetKeyState(VK_SPACE) & 0x8000 && gameParameters.bombsEnabled)
-            if(gameState.bombCharge >= gameParameters.bombChargeTime)
-                sendBombMessage();
-    }
+    //the extra conditions ensure that you cannot turn back on yourself and die. BMTron allows that and it's very annoying.
+    if(keysPressed[Qt::Key_Left])
+        if(xDir != 1 && (xPos - 1) != tempxPos2)
+            { xDir = -1; yDir = 0; }
+    if(keysPressed[Qt::Key_Right])
+        if(xDir != -1 && (xPos + 1) != tempxPos2)
+            { xDir = 1; yDir =  0; }
+    if(keysPressed[Qt::Key_Up])
+        if(yDir != 1 && (yPos - 1) != tempyPos2)
+            { xDir = 0; yDir = -1; }
+    if(keysPressed[Qt::Key_Down])
+        if(yDir != -1 && (yPos + 1) != tempyPos2)
+            { xDir = 0; yDir = 1; }
+
+    if(keysPressed[Qt::Key_Shift] && gameParameters.sprintEnabled)
+        isSprinting = true;
+
+    if(keysPressed[Qt::Key_Space] && gameParameters.bombsEnabled)
+        if(gameState.bombCharge >= gameParameters.bombChargeTime)
+            sendBombMessage();
 
     xPos += xDir;
     yPos += yDir;
@@ -72,6 +76,9 @@ void ClientPlayer::iterateGameState()
 
     manageBomb();
     manageSprint();
+
+    tempxPos2 = tempxPos1; tempyPos2 = tempyPos1;
+    tempxPos1 = xPos; tempyPos1 = yPos;
 
     emit drawSignal();
 }

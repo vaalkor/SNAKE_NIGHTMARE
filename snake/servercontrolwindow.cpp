@@ -1,11 +1,13 @@
 #include "servercontrolwindow.h"
 #include "ui_servercontrolwindow.h"
+#include "gameobjectsanddata.h"
+
 #include <QDebug>
 #include <QAbstractListModel>
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDesktopWidget>
-#include "gameobjectsanddata.h"
+
 
 ServerControlWindow::ServerControlWindow(GameParameters *params_, QWidget *parent)
     : gameParameters(params_), QDialog(parent), ui(new Ui::ServerControlWindow)
@@ -16,6 +18,7 @@ ServerControlWindow::ServerControlWindow(GameParameters *params_, QWidget *paren
 
     QRect screen = static_cast<QApplication *>( QCoreApplication::instance() )->desktop()->screenGeometry(0);
     move(QPoint( screen.width()*0.75-width()/2.0, screen.height()*0.25-height()/2.0 ));
+
 }
 
 void ServerControlWindow::updateUI(QHash<unsigned char, PlayerInfo> &hash, GameState &state)
