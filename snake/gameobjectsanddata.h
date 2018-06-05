@@ -21,6 +21,7 @@ public:
     QRgb color;
     char name[MAX_NAME_LENGTH+1]; //+1 for the null terminator
     bool alive = true;
+    bool inCurrentGame = false;
 
     PlayerInfo();
     PlayerInfo(unsigned char playerID_, QRgb color_, char* name_);
@@ -33,6 +34,7 @@ public:
     short numPlayers = 0;
     float sprintMeter = 1000; //set this to sprint length later on mate... yihyihyihm8
     float bombCharge = 0;
+    short wallEncroachment = 0;
 };
 
 class GameParameters
@@ -55,6 +57,9 @@ public:
     bool revengeModeEnabled = false;
     bool PUBGmodeEnabled = false;
 
+    int PUBGWallIncrease = 2;
+    int PUBGCircleTime = 2500;
+
     int sizeInBytes();
 };
 
@@ -67,6 +72,7 @@ enum class MessageType : unsigned char
     PLAYER_DISCONNECTED,
     PLAYER_ID_ASSIGNMENT,
     NOTIFY_SERVER_OF_PLAYER_NAME,
+    BATTLE_ROYALE_WALL_UPDATE,
     POSITION_UPDATE,
     BOMB_ACTIVATION,
     PLAYER_DIED,

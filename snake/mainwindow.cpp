@@ -130,10 +130,20 @@ void MainWindow::drawSlot()
     image.fill( qRgb(0,0,0));
     for(unsigned int i=0; i<100; i++)
         for(unsigned int j=0; j<100; j++)
-            if(isServer && serverPlayer->tailArray[i][j])
-                drawSquare(i, j, playerColors[ serverPlayer->tailArray[i][j] ]);
-            else if(!isServer && clientPlayer->tailArray[i][j])
-                drawSquare(i, j, playerColors[ clientPlayer->tailArray[i][j] ]);
+            if(isServer)
+            {
+                if(serverPlayer->tailArray[i][j].partOfWall)
+                    drawSquare(i, j, qRgb(67,134,242));
+                else if(serverPlayer->tailArray[i][j].id)
+                    drawSquare(i, j, playerColors[ serverPlayer->tailArray[i][j].id ]);
+            }
+            else
+            {
+                if(clientPlayer->tailArray[i][j].partOfWall)
+                    drawSquare(i, j, qRgb(67,134,242));
+                else if(clientPlayer->tailArray[i][j].id)
+                    drawSquare(i, j, playerColors[ clientPlayer->tailArray[i][j].id ]);
+            }
 
     if(!isServer)
     {
@@ -205,6 +215,8 @@ void MainWindow::drawSlot()
                 for(unsigned int x=minX; x<= maxX; x++)
                     drawSquare(x,y, qRgb(255,0,0));
         }
+
+
     }
 
     update();

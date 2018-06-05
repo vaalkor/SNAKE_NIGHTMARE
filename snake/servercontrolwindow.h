@@ -45,6 +45,10 @@ private slots:
 
     void on_bombRechargeLengthInputBox_textEdited(const QString &arg1);
 
+    void on_PUBGCircleTimeInputBox_textEdited(const QString &arg1);
+
+    void on_PUBGWallIncreaseInputBox_textEdited(const QString &arg1);
+
 private:
     Ui::ServerControlWindow *ui;
 };

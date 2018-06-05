@@ -39,6 +39,7 @@ public:
     int xDir = 1;
     int yDir = 0;
 
+    void resetGameState();
     void sendName(std::string name);
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;

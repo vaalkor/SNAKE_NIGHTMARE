@@ -15,6 +15,8 @@ ServerPlayer::ServerPlayer(QObject *parent) : Player(parent)
     QObject::connect(clientUdp, SIGNAL(readyRead()), this, SLOT(readyReadUdp()));
     QObject::connect(&timer, SIGNAL(timeout()), this, SLOT(iterateStartGameCounter()));
 
+    QObject::connect(&battleRoyaleTimer, SIGNAL(timeout()), this, SLOT(manageBattleRoyaleMode()));
+
     if (!server->listen(QHostAddress::Any, 6666))
         qDebug() << "could not listen on server mate..\n";
     else
@@ -101,6 +103,7 @@ void ServerPlayer::calculateStartingPosition(short &x, short &y)
 }
 void ServerPlayer::sendWinSignal(unsigned char ID)
 {
+    battleRoyaleTimer.stop();
     gameState.gameInProgress = false;
     serverWindow->updateUI(playerList, gameState);
     QString winnerName = QString::fromStdString( playerList[ID].name);
@@ -219,11 +222,8 @@ void ServerPlayer::sendGameParameters()
 //this starts the counter, which runs for a few seconds. each tick of the clock calls iterateGameCounter
 void ServerPlayer::startGameCounterSlot()
 {
-    memset(tailArray, 0, sizeof(tailArray));
-
-    startGameCounter = TIMER_LENGTH;
-
     sendGameParameters();
+    resetGameState();
 
     qDebug() << "startgame button pressed... sending start game messages...";
     if(gameState.numPlayers > 0)
@@ -241,6 +241,16 @@ void ServerPlayer::startGameCounterSlot()
     }
 }
 
+//might need to add some more stuff here fookin ell
+void ServerPlayer::resetGameState()
+{
+    memset(tailArray, 0, sizeof(tailArray));
+    startGameCounter = TIMER_LENGTH;
+    gameState.wallEncroachment = 0;
+    battleRoyaleTimer.stop();
+    timer.stop();
+}
+
 void ServerPlayer::iterateStartGameCounter()
 {
 
@@ -256,6 +266,8 @@ void ServerPlayer::iterateStartGameCounter()
         serverWindow->updateUI(playerList, gameState);
 
         timer.stop();
+        if(gameParameters.PUBGmodeEnabled)
+            battleRoyaleTimer.start( gameParameters.PUBGCircleTime );
     }else                       //send the counter...
     {
         block.clear();
@@ -343,6 +355,20 @@ void ServerPlayer::readyReadTcp()
         }
 }
 
+void ServerPlayer::manageBattleRoyaleMode()
+{
+    gameState.wallEncroachment += gameParameters.PUBGWallIncrease; //make this a parameter later on mate....
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::BATTLE_ROYALE_WALL_UPDATE;
+    out << gameState.wallEncroachment;
+
+    for(auto &socket : clients)
+        socket->write(block);
+
+    updateBattleRoyaleMode();
+}
+
 //you could make this a bit more OO mate.... yeah...
 void ServerPlayer::sendBombMessage(short x, short y)
 {
@@ -360,14 +386,14 @@ void ServerPlayer::receivePosition(unsigned char ID, short x, short y)
 {
     if(playerList[ID].alive)
     {
-        if(tailArray[x][y] || x < 0 || x >= 100 || y < 0 || y >= 100) //currently we are storing thing shere.. but... info is in tcpserver innit.. move things around later on.
+        if(tailArray[x][y].id || tailArray[x][y].partOfWall || x < 0 || x >= 100 || y < 0 || y >= 100) //currently we are storing thing shere.. but... info is in tcpserver innit.. move things around later on.
         {
             sendDeathSignal(ID);
             playerList[ID].alive = false;
         }
         else
         {
-            tailArray[x][y] = ID;
+            tailArray[x][y].id = ID;
             sendPosition(ID, x, y);
         }
         checkWinConditions();

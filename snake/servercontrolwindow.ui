@@ -40,7 +40,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>70</y>
+     <y>50</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -56,7 +56,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>90</y>
+     <y>70</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -71,8 +71,8 @@
   <widget class="QSlider" name="speedInputSlider">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>130</y>
+     <x>20</x>
+     <y>150</y>
      <width>160</width>
      <height>19</height>
     </rect>
@@ -93,8 +93,8 @@
   <widget class="QLabel" name="speedModifierLabel">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>110</y>
+     <x>60</x>
+     <y>130</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -103,24 +103,11 @@
     <string>   Speed modifier </string>
    </property>
   </widget>
-  <widget class="QLabel" name="gameOptionsSlider">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>40</y>
-     <width>161</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>________ Game Options______</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="gameModesLabel">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>250</y>
+     <x>30</x>
+     <y>30</y>
      <width>141</width>
      <height>21</height>
     </rect>
@@ -182,8 +169,8 @@
   <widget class="QCheckBox" name="enablePUBGModeCheckbox">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>270</y>
+     <x>60</x>
+     <y>90</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -195,8 +182,8 @@
   <widget class="QCheckBox" name="enableRevengeModeCheckbox">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>290</y>
+     <x>60</x>
+     <y>110</y>
      <width>111</width>
      <height>21</height>
     </rect>
@@ -208,8 +195,8 @@
   <widget class="QLabel" name="sprintLengthLabel">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>150</y>
+     <x>40</x>
+     <y>170</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -221,8 +208,8 @@
   <widget class="QLabel" name="sprintRechargeLabel">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>170</y>
+     <x>30</x>
+     <y>190</y>
      <width>101</width>
      <height>21</height>
     </rect>
@@ -234,8 +221,8 @@
   <widget class="QLabel" name="bombRechargeLabel">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>190</y>
+     <x>30</x>
+     <y>210</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -247,8 +234,8 @@
   <widget class="QLineEdit" name="sprintLengthInputBox">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>150</y>
+     <x>150</x>
+     <y>170</y>
      <width>31</width>
      <height>20</height>
     </rect>
@@ -260,8 +247,8 @@
   <widget class="QLineEdit" name="sprintRechargeLengthInputBox">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>170</y>
+     <x>150</x>
+     <y>190</y>
      <width>31</width>
      <height>20</height>
     </rect>
@@ -273,14 +260,66 @@
   <widget class="QLineEdit" name="bombRechargeLengthInputBox">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>190</y>
+     <x>150</x>
+     <y>210</y>
      <width>31</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>10.0</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="PUBGCircleTimeLabel">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>240</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PUBG circle time (s)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="PUBGCircleTimeInputBox">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>240</y>
+     <width>31</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>2.5</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="PUBGWallIncreaseLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>260</y>
+     <width>131</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PUBG wall increase (blocks)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="PUBGWallIncreaseInputBox">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>260</y>
+     <width>31</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>2</string>
    </property>
   </widget>
  </widget>

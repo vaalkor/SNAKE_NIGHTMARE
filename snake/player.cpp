@@ -21,7 +21,22 @@ void Player::triggerBomb(short x, short y)
 
     for(unsigned int y=minY; y<=maxY; y++)
         for(unsigned int x=minX; x<= maxX; x++)
-            tailArray[x][y] = 0;
+            tailArray[x][y].id = 0;
+}
+
+void Player::updateBattleRoyaleMode()
+{
+    for(unsigned int y=0; y<gameParameters.height;y++)
+    {
+        for(unsigned int x=0; x<gameParameters.width;x++)
+        {
+            if(    x<gameState.wallEncroachment || x >= (gameParameters.width-gameState.wallEncroachment)
+                || y<gameState.wallEncroachment || y >= (gameParameters.height-gameState.wallEncroachment) )
+                tailArray[x][y].partOfWall = true;
+            else
+                tailArray[x][y].id = 0;
+        }
+    }
 }
 
 void Player::resizeTailArray()

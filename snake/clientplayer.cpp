@@ -190,30 +190,18 @@ void ClientPlayer::readyReadTcp()
                         //qDebug() << "PLAYER " << tempID << "WON!!!!";
                         break;
                     case MessageType::GAME_BEGIN :
-                        //qDebug() << "game begun";
-                        startGameTimerOnScreen = false;
+                        //qDebug() << "game begun"
                         startGame();
                         emit drawSignal();
                         break;
                     case MessageType::TIMER_UPDATE :
-                        short gameCounter;
-                        inblock >> gameCounter;
-                        //buffer.
-                        startGameTimer = gameCounter;
-
-                        //if the counter has just started then we clear the previous game state array and display the timer number
-                        //INSERT THINGS THAT NEED TO HAPPEN AT THE START OF THE GAME HERE!!!
-                        if(gameCounter == TIMER_LENGTH)
-                        {
-                            printWinnerName = false;
-                            gameState.sprintMeter = gameParameters.sprintLength; //reset the sprint meter mate...
-                            gameState.bombCharge = 0;
-                            memset(tailArray,0, sizeof(tailArray));
-                            startGameTimerOnScreen = true;
-                        }
-
-                        //qDebug() << "client timer update: " << gameCounter;
+                        inblock >> startGameTimer;
                         dataSize -= sizeof(short);
+
+                        //if the counter has just started then reset the game state
+                        if(startGameTimer == TIMER_LENGTH)
+                            resetGameState();
+
                         emit drawSignal();
                         break;
                     case MessageType::PLAYER_ID_ASSIGNMENT:
@@ -233,9 +221,11 @@ void ClientPlayer::readyReadTcp()
                     case MessageType::GAME_PARAMETERS:
                         inblock >> gameParameters;
                         dataSize -= gameParameters.sizeInBytes();
-                        //qDebug() << "//////////////////////////--------sprintenabld: " << gameParameters.sprintEnabled;
-                        //qDebug() << "//////////////////////////--------bombs enabled: " << gameParameters.bombsEnabled;
-                        //qDebug() << "//////////////////////////--------PUBG mode enabled: " << gameParameters.PUBGmodeEnabled;
+                        break;
+                    case MessageType::BATTLE_ROYALE_WALL_UPDATE:
+                        inblock >> gameState.wallEncroachment;
+                        dataSize -= sizeof(short);
+                        updateBattleRoyaleMode();
                         break;
                 }
                 qDebug() << "dataSize after switch: " << dataSize;
@@ -245,10 +235,22 @@ void ClientPlayer::readyReadTcp()
         }
 }
 
+void ClientPlayer::resetGameState()
+{
+    timer.stop();
+    gameState.wallEncroachment = 0;
+    printWinnerName = false;
+    gameState.sprintMeter = gameParameters.sprintLength; //reset the sprint meter mate...
+    gameState.bombCharge = 0;
+    memset(tailArray,0, sizeof(tailArray));
+    startGameTimerOnScreen = true;
+}
+
 void ClientPlayer::startGame()
 {
+    startGameTimerOnScreen = false;
     gameState.gameInProgress = true;
-    timer.start(33); //start the fooking timer mate!!!!! sick one sick. //remember you will also have to clear the array at the start of your countdown.
+    timer.start(gameParameters.tickLength); //start the fooking timer mate!!!!! sick one sick. //remember you will also have to clear the array at the start of your countdown.
 }
 
 void ClientPlayer::gameOver(unsigned char ID)
@@ -302,7 +304,7 @@ void ClientPlayer::sendPosition(unsigned char ID, short x, short y)
 }
 void ClientPlayer::receivePosition(unsigned char ID, short x, short y)
 {
-    tailArray[x][y] = ID;
+    tailArray[x][y].id = ID;
 }
 void ClientPlayer::receiveStartPosition(unsigned char ID, short x, short y)
 {
@@ -312,7 +314,7 @@ void ClientPlayer::receiveStartPosition(unsigned char ID, short x, short y)
         yPos = y;
     }else
     {
-        tailArray[x][y] = ID;
+        tailArray[x][y].id = ID;
     }
 
     emit drawSignal();

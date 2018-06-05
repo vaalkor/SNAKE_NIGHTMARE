@@ -21,6 +21,8 @@ public:
     QTcpServer *server;
     QUdpSocket *clientUdp;
 
+    QTimer battleRoyaleTimer;
+
     unsigned int clientIDCounter = 0;
     short startGameCounter;
 
@@ -40,6 +42,7 @@ public:
 
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;
+    void resetGameState();
 
     ~ServerPlayer();
 
@@ -52,6 +55,7 @@ public slots:
     void clientDisconnected();
     void startGameCounterSlot();
     void iterateStartGameCounter();
+    void manageBattleRoyaleMode();
 };
 
 #endif // SERVERPLAYER_H
