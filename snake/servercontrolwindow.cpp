@@ -124,3 +124,8 @@ void ServerControlWindow::on_PUBGWallIncreaseInputBox_textEdited(const QString &
         value = 2;
     gameParameters->PUBGWallIncrease = value;
 }
+
+void ServerControlWindow::on_tcpRadioButton_toggled(bool checked)
+{
+    gameParameters->useTcp = checked;
+}

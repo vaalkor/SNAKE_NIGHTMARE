@@ -23,6 +23,7 @@ public:
     QUdpSocket udpSocket;
     unsigned char clientID;
     QHostAddress address;
+    QByteArray block;
 
     bool startGameTimerOnScreen = false;
     short startGameTimer = TIMER_LENGTH;

@@ -234,6 +234,14 @@ void ClientPlayer::readyReadTcp()
                         dataSize -= sizeof(short);
                         updateBattleRoyaleMode();
                         break;
+                    case MessageType::POSITION_UPDATE:
+                        inblock >> tempID;
+                        inblock >> x;
+                        inblock >> y;
+                        dataSize -= sizeof(unsigned char);
+                        dataSize -= sizeof(short); dataSize -= sizeof(short);
+                        receivePosition(tempID,x,y);
+                        break;
                 }
                 qDebug() << "dataSize after switch: " << dataSize;
                 //qDebug() << "after switch!...bytes available: " << tcpSocket.bytesAvailable();
@@ -288,7 +296,7 @@ void ClientPlayer::sendBombMessage()
     drawBomb = true;
     bombPosition = QPoint(xPos, yPos);
 
-    QByteArray block;
+    block.clear();
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_0);
 
@@ -301,13 +309,26 @@ void ClientPlayer::sendBombMessage()
 
 void ClientPlayer::sendPosition(unsigned char ID, short x, short y)
 {
-    QByteArray buffer;
-    QDataStream stream(&buffer, QIODevice::WriteOnly);
-    stream << ID;
-    stream << x;
-    stream << y;
+    if(gameParameters.useTcp)
+    {
+        block.clear();
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out.setVersion(QDataStream::Qt_4_0);
+        out << (unsigned char)MessageType::POSITION_UPDATE;
+        out << ID;
+        out << x;
+        out << y;
+        tcpSocket.write(block);
+    }else
+    {
+        block.clear();
+        QDataStream stream(&block, QIODevice::WriteOnly);
+        stream << ID;
+        stream << x;
+        stream << y;
+        udpSocket.writeDatagram(block.data(), block.size(), address, 6666);
+    }
 
-    udpSocket.writeDatagram(buffer.data(), buffer.size(), address, 6666);
 }
 void ClientPlayer::receivePosition(unsigned char ID, short x, short y)
 {

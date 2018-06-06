@@ -50,6 +50,8 @@ private slots:
 
     void on_PUBGWallIncreaseInputBox_textEdited(const QString &arg1);
 
+    void on_tcpRadioButton_toggled(bool checked);
+
 private:
     Ui::ServerControlWindow *ui;
 };

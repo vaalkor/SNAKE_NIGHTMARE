@@ -60,6 +60,7 @@ public:
 
     int PUBGWallIncrease = 2;
     int PUBGCircleTime = 2500;
+    bool useTcp = false;
 
     int sizeInBytes();
 };

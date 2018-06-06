@@ -58,14 +58,21 @@ void ServerPlayer::gameOver(unsigned char winnerID)
 
 void ServerPlayer::sendPosition(unsigned char ID, short x, short y)
 {
-    for(const QTcpSocket *client : clients)
+    block.clear();
+    QDataStream stream(&block, QIODevice::WriteOnly); //THIS IS VERY VERY VERY TEMPORARY AT THE MOMENT BOYS. VERY TEMPORARY INDEED... ITS SHIT ATM...
+
+    if(gameParameters.useTcp)
+        stream << (unsigned char)MessageType::POSITION_UPDATE;
+
+    stream << ID;
+    stream << x;
+    stream << y;
+    for(auto &client : clients)
     {
-        QByteArray buffer;
-        QDataStream stream(&buffer, QIODevice::WriteOnly); //THIS IS VERY VERY VERY TEMPORARY AT THE MOMENT BOYS. VERY TEMPORARY INDEED... ITS SHIT ATM...
-        stream << ID;
-        stream << x;
-        stream << y;
-        clientUdp->writeDatagram(buffer.data(), buffer.size(), client->peerAddress(), 1234);
+        if(gameParameters.useTcp)
+            client->write(block);
+        else
+            clientUdp->writeDatagram(block.data(), block.size(), client->peerAddress(), 1234);
     }
 }
 
@@ -326,31 +333,43 @@ void ServerPlayer::readyReadTcp()
 
             QDataStream inblock(&buffer, QIODevice::ReadOnly);
 
-            unsigned char mTypeChar;
-            inblock >> mTypeChar;
-            MessageType mType;
-            mType = static_cast<MessageType>(mTypeChar);
-
-            //qDebug() << (unsigned int)mType;
-
-            if(mType == MessageType::BOMB_ACTIVATION)
+            while(dataSize)
             {
-                qDebug() << "bomb activation";
+                unsigned char mTypeChar;
+                inblock >> mTypeChar;
+                MessageType mType;
+                mType = static_cast<MessageType>(mTypeChar);
+                dataSize -= sizeof(unsigned char);
+
+                //qDebug() << (unsigned int)mType;
                 short x,y;
-                inblock >> x;
-                inblock >> y;
-                triggerBomb(x,y);
-                sendBombMessage(x,y);
-                break;
-            }else if(mType == MessageType::NOTIFY_SERVER_OF_PLAYER_NAME)
-            {
-                //qDebug() << "notify of name...";
-                QString data;
-                inblock >> data;
-                std::string tempStr = data.toStdString();
-                strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), MAX_NAME_LENGTH );
-                serverWindow->updateUI(playerList, gameState);
-                break;
+                if(mType == MessageType::BOMB_ACTIVATION)
+                {
+                    qDebug() << "bomb activation";
+                    inblock >> x;
+                    inblock >> y;
+                    triggerBomb(x,y);
+                    sendBombMessage(x,y);
+                    dataSize -= sizeof(short);dataSize -= sizeof(short);
+                }else if(mType == MessageType::NOTIFY_SERVER_OF_PLAYER_NAME)
+                {
+                    //qDebug() << "notify of name...";
+                    QString data;
+                    inblock >> data;
+                    std::string tempStr = data.toStdString();
+                    strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), MAX_NAME_LENGTH );
+                    serverWindow->updateUI(playerList, gameState);
+                    dataSize=0;
+                }else if(mType == MessageType::POSITION_UPDATE)
+                {
+                    unsigned char ID;
+                    inblock >> ID;
+                    inblock >> x;
+                    inblock >> y;
+                    receivePosition(ID, x, y);
+                    dataSize -= sizeof(unsigned char);
+                    dataSize -= sizeof(short);dataSize -= sizeof(short);
+                }
             }
         }
 }
