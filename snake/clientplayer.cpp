@@ -5,7 +5,7 @@
 
 ClientPlayer::ClientPlayer(QHostAddress address_, QObject *parent) : address(address_), Player(parent)
 {
-    udpSocket.bind(1234); //clients listen on 1234, the server listens on 6666 mate.... cool.
+    //udpSocket.bind(1234); //clients listen on 1234, the server listens on 6666 mate.... cool.
 
     QObject::connect(&tcpSocket, SIGNAL(readyRead()), this, SLOT( readyReadTcp()) );
     QObject::connect(&udpSocket, SIGNAL(readyRead()), this, SLOT( readyReadUdp()) );
@@ -216,6 +216,7 @@ void ClientPlayer::readyReadTcp()
                         inblock >> tempID;
                         dataSize -= sizeof(unsigned char);
                         clientID = tempID;
+                        udpSocket.bind(BASE_UDP_PORT+clientID);
                         break;
                     case MessageType::START_POSITION:
                         inblock >> tempID;

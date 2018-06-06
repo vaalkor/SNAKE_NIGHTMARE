@@ -6,6 +6,7 @@
 #define MAX_NAME_LENGTH 20
 #define MIN_TICKRATE 33
 #define MAX_TICKRATE 66
+#define BASE_UDP_PORT 1234
 
 #include <vector>
 #include <cstring>

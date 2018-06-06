@@ -67,12 +67,12 @@ void ServerPlayer::sendPosition(unsigned char ID, short x, short y)
     stream << ID;
     stream << x;
     stream << y;
-    for(auto &client : clients)
+    for(QTcpSocket *client : clients)
     {
         if(gameParameters.useTcp)
             client->write(block);
         else
-            clientUdp->writeDatagram(block.data(), block.size(), client->peerAddress(), 1234);
+            clientUdp->writeDatagram(block.data(), block.size(), client->peerAddress(), BASE_UDP_PORT+playerList[idList[client]].playerID);
     }
 }
 
