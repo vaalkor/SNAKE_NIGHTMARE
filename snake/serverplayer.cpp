@@ -25,11 +25,19 @@ ServerPlayer::ServerPlayer(QObject *parent) : Player(parent)
     serverWindow->show();
 }
 
-void ServerPlayer::sendTcpBlock(QByteArray &block)
+void ServerPlayer::sendTcpBlock(ClientStatus clientStatus, QByteArray &block)
 {
-    for(QTcpSocket *socket : clients)
-        if(playerList[idList[socket]].inCurrentGame)
+    if(clientStatus == ClientStatus::ALL_CLIENTS)
+    {
+        for(QTcpSocket *socket : clients)
             socket->write(block);
+    }else if(clientStatus == ClientStatus::IN_CURRENT_GAME_CLIENTS)
+    {
+         for(QTcpSocket *socket : clients)
+             if(playerList[idList[socket]].inCurrentGame)
+                 socket->write(block);
+    }
+
 }
 
 void ServerPlayer::readyReadUdp()
@@ -56,7 +64,7 @@ void ServerPlayer::gameOver(unsigned char winnerID)
     out << (unsigned char)MessageType::PLAYER_WON;
     out << winnerID;
 
-    sendTcpBlock(block);
+    sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
 
     gameState.gameInProgress = false;
     serverWindow->updateUI(playerList, gameState);
@@ -75,7 +83,7 @@ void ServerPlayer::sendPosition(unsigned char ID, short x, short y)
     stream << y;
 
     if(gameParameters.useTcp)
-        sendTcpBlock(block);
+        sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
     else
         for(QTcpSocket *client : clients)
             clientUdp->writeDatagram(block.data(), block.size(), client->peerAddress(), BASE_UDP_PORT+playerList[idList[client]].playerID);
@@ -127,7 +135,7 @@ void ServerPlayer::sendWinSignal(unsigned char ID)
     out << ID;
     out << winnerName;
 
-    sendTcpBlock(block);
+    sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
 }
 
 void ServerPlayer::checkWinConditions()
@@ -166,21 +174,26 @@ void ServerPlayer::handleConnection()
         while(server->hasPendingConnections())
         {
             QTcpSocket *tempClient = server->nextPendingConnection();
-            clients.push_back( tempClient );
-
             tempClient->setSocketOption(QAbstractSocket::LowDelayOption,1);
+
+            //iterate through the players already in the game and send their ID's to the newly connected player.
+            for(auto it=playerList.begin(); it!=playerList.end(); it++)
+            {
+                block.clear();
+                QDataStream out(&block, QIODevice::WriteOnly);
+                out << (unsigned char)MessageType::PLAYER_CONNECTED;
+                out << it->playerID;
+                tempClient->write(block);
+            }
+
+            clients.push_back( tempClient );
 
             QObject::connect(tempClient, SIGNAL(disconnected()), this, SLOT(clientDisconnected()));
             QObject::connect(tempClient, SIGNAL(readyRead()), this, SLOT(readyReadTcp()));
 
-            //work out a new id for this client.
-            unsigned char tempID = 1; //this starts at 1 so I can just use 0 for having NO color in an array spot. a bit dirty. whatever.
-            for(auto it=playerList.begin(); it!=playerList.end(); it++)
-                for(auto it2=playerList.begin(); it2!=playerList.end(); it2++)
-                    if( it2->playerID == tempID)
-                        tempID++;
+            unsigned char tempID = calculateNewPlayerID();
 
-            playerList[tempID] = PlayerInfo(tempID, playerColors[tempID], "");
+            playerList[tempID] = PlayerInfo(tempID, "");
             idList[tempClient] = tempID;
 
             //inform that person of their new ID and their starting position...
@@ -191,16 +204,32 @@ void ServerPlayer::handleConnection()
             out << tempID;
             tempClient->write(block);
 
+            block.clear();
+            QDataStream out2(&block, QIODevice::WriteOnly);
+            out2 << (unsigned char)MessageType::PLAYER_CONNECTED;
+            out2 << tempID;
+
+            sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
+
             gameState.numPlayers++;
         }
     }
+}
+unsigned char ServerPlayer::calculateNewPlayerID()
+{
+    unsigned char tempID = 1; //this starts at 1 so I can just use 0 for having NO color in an array spot. a bit dirty. whatever.
+    for(auto it=playerList.begin(); it!=playerList.end(); it++)
+        for(auto it2=playerList.begin(); it2!=playerList.end(); it2++)
+            if( it2->playerID == tempID)
+                tempID++;
+    return tempID;
 }
 void ServerPlayer::clientDisconnected()
 {
     qDebug() << "Client disconnected.";
     QTcpSocket *clientSocket = qobject_cast<QTcpSocket *>(QObject::sender()); //this will apparently give us the pointer to the socket that was disconnected mate...
-
-    playerList.remove( idList[clientSocket] );
+    unsigned char tempID = idList[clientSocket];
+    playerList.remove( tempID );
     idList.remove(clientSocket);
 
     for(auto it=clients.begin(); it < clients.end(); it++)
@@ -212,6 +241,13 @@ void ServerPlayer::clientDisconnected()
             break;
         }
     }
+
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::PLAYER_DISCONNECTED;
+    out << tempID;
+
+    sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
 
     serverWindow->updateUI(playerList, gameState);
     clientSocket->deleteLater();
@@ -226,7 +262,7 @@ void ServerPlayer::sendGameParameters()
     out << (unsigned char)MessageType::GAME_PARAMETERS;
     out << gameParameters;
 
-    sendTcpBlock(block);
+    sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
 }
 
 //might need to add some more stuff here fookin ell
@@ -275,7 +311,7 @@ void ServerPlayer::sendStartingPositions()
         out << x << y;
 
         //now write out that starting position to all clients in the game...
-        sendTcpBlock(block);
+        sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
     }
 }
 
@@ -288,7 +324,7 @@ void ServerPlayer::iterateStartGameCounter()
         QDataStream out(&block, QIODevice::WriteOnly);
         out << (unsigned char)MessageType::GAME_BEGIN;
 
-        sendTcpBlock(block);
+        sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
 
         serverWindow->updateUI(playerList, gameState);
 
@@ -302,7 +338,7 @@ void ServerPlayer::iterateStartGameCounter()
         out << (unsigned char)MessageType::TIMER_UPDATE;
         out << startGameCounter;
 
-        sendTcpBlock(block);
+        sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
 
         if(startGameCounter == TIMER_LENGTH) //putting this here is a shitty solution but it works for the moment. I think I'll add a signal to inform the client that it should clear it's tail array instead of relying on this very stateful solution
             sendStartingPositions();
@@ -351,15 +387,27 @@ void ServerPlayer::readyReadTcp()
                     triggerBomb(x,y);
                     sendBombMessage(x,y);
                     dataSize -= sizeof(short);dataSize -= sizeof(short);
-                }else if(mType == MessageType::NOTIFY_SERVER_OF_PLAYER_NAME)
+                }else if(mType == MessageType::NOTIFY_NAME)
                 {
-                    //qDebug() << "notify of name...";
-                    QString data;
-                    inblock >> data;
-                    std::string tempStr = data.toStdString();
+                    QString name;
+                    inblock >> name;
+                    std::string tempStr = name.toStdString();
                     strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), MAX_NAME_LENGTH );
                     serverWindow->updateUI(playerList, gameState);
-                    dataSize -= (data.length()*sizeof(QChar)+4); //this is EXTREMELY GYPO AS FUCK!!!
+                    dataSize -= (name.length()*sizeof(QChar)+4); //this is EXTREMELY GYPO AS FUCK!!!
+
+                    //now send the name to all connected clients...
+                    for(auto it=playerList.begin();it!=playerList.end();it++)
+                    {
+                        tempStr = it->name;
+                        name = QString::fromStdString(tempStr);
+                        block.clear();
+                        QDataStream out(&block, QIODevice::WriteOnly);
+                        out << (unsigned char)MessageType::NOTIFY_NAME;
+                        out << it->playerID;
+                        out << name;
+                        sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
+                    }
                 }else if(mType == MessageType::POSITION_UPDATE)
                 {
                     unsigned char ID;
@@ -382,7 +430,7 @@ void ServerPlayer::manageBattleRoyaleMode()
     out << (unsigned char)MessageType::BATTLE_ROYALE_WALL_UPDATE;
     out << gameState.wallEncroachment;
 
-    sendTcpBlock(block);
+    sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
 
     updateBattleRoyaleModeState();
 }
@@ -396,7 +444,7 @@ void ServerPlayer::sendBombMessage(short x, short y)
     out << x;
     out << y;
 
-    sendTcpBlock(block);
+    sendTcpBlock(ClientStatus::IN_CURRENT_GAME_CLIENTS, block);
 }
 
 void ServerPlayer::receivePosition(unsigned char ID, short x, short y)

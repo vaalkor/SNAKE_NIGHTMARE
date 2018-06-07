@@ -9,8 +9,8 @@ const std::vector<QRgb> playerColors
 
 PlayerInfo::PlayerInfo(){}  //if I don't have a defauly constructor QHash complains at me.. so that's why this is here.
 
-PlayerInfo::PlayerInfo(unsigned char playerID_, QRgb color_, char* name_)
-    :playerID(playerID_), color(color_)
+PlayerInfo::PlayerInfo(unsigned char playerID_, char* name_)
+    :playerID(playerID_)
 {
     memset(name, 0, sizeof(char)*MAX_NAME_LENGTH+1);
     strncpy(name, name_, MAX_NAME_LENGTH);

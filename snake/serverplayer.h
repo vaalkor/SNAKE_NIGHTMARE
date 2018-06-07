@@ -10,6 +10,11 @@
 #include "servercontrolwindow.h"
 #include "gameobjectsanddata.h"
 
+enum class ClientStatus : unsigned char
+{
+    ALL_CLIENTS,
+    IN_CURRENT_GAME_CLIENTS
+};
 
 class ServerPlayer : public Player
 {
@@ -40,7 +45,8 @@ public:
     void sendWinSignal(unsigned char ID);
     void checkWinConditions();
     void sendBombMessage(short x, short y);
-    void sendTcpBlock(QByteArray &block);
+    void sendTcpBlock(ClientStatus clientStatus, QByteArray &block);
+    unsigned char calculateNewPlayerID();
 
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;

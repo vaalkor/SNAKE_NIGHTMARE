@@ -20,13 +20,13 @@ class PlayerInfo
 {
 public:
     unsigned char playerID;
-    QRgb color;
     char name[MAX_NAME_LENGTH+1]; //+1 for the null terminator
     bool alive = false;
     bool inCurrentGame = false;
+    int score = 0;
 
     PlayerInfo();
-    PlayerInfo(unsigned char playerID_, QRgb color_, char* name_);
+    PlayerInfo(unsigned char playerID_, char* name_);
 };
 
 class GameState
@@ -74,14 +74,13 @@ enum class MessageType : unsigned char
     PLAYER_CONNECTED,
     PLAYER_DISCONNECTED,
     PLAYER_ID_ASSIGNMENT,
-    NOTIFY_SERVER_OF_PLAYER_NAME,
+    NOTIFY_NAME,
     BATTLE_ROYALE_WALL_UPDATE,
     POSITION_UPDATE,
     BOMB_ACTIVATION,
     PLAYER_DIED,
     PLAYER_WON,
     GAME_BEGIN,
-    GAME_STOPPED,
     TIMER_UPDATE,
     START_POSITION,
     GAME_PARAMETERS,

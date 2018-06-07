@@ -91,7 +91,7 @@
     <string>Enter name</string>
    </property>
    <property name="maxLength">
-    <number>21</number>
+    <number>20</number>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">

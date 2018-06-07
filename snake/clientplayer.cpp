@@ -2,6 +2,7 @@
 #include <QDataStream>
 #include <QByteArray>
 #include <QDebug>
+#include <iostream>
 
 ClientPlayer::ClientPlayer(QHostAddress address_, QObject *parent) : address(address_), Player(parent)
 {
@@ -172,80 +173,95 @@ void ClientPlayer::readyReadTcp()
                 unsigned char tempID;
                 short x,y;
 
-                //qDebug() << "before SWITCH STATEMENT!...bytes available: " << tcpSocket.bytesAvailable();
-                qDebug() << "dataSize before switch mate!!!!";
-                switch(mType){
-                    case MessageType::BOMB_ACTIVATION :
-                        qDebug() << "bomb activation";
-                        inblock >> x;
-                        inblock >> y;
-                        triggerBomb(x,y);
-                        dataSize -= sizeof(short); dataSize -= sizeof(short);
-                        break;
-                    case MessageType::PLAYER_DIED :
-                        //qDebug() << "PLAYER DIED!!!";
-                        timer.stop();
-                        break;
-                    case MessageType::PLAYER_WON :
-                        //qDebug() << "player won";
-                        inblock >> tempID;
-                        inblock >> winnerName;
-                        winnerID = tempID;
-                        dataSize -= sizeof(unsigned char);
-                        dataSize -= winnerName.size()*sizeof(QChar);
-                        gameOver(tempID);
-                        //qDebug() << "PLAYER " << tempID << "WON!!!!";
-                        break;
-                    case MessageType::GAME_BEGIN :
-                        //qDebug() << "game begun"
-                        startGame();
-                        emit drawSignal();
-                        break;
-                    case MessageType::TIMER_UPDATE :
-                        inblock >> startGameTimer;
-                        dataSize -= sizeof(short);
+                qDebug() << "dataSize before switch mate: " << dataSize;
+                if(mType == MessageType::POSITION_UPDATE)
+                {
+                    inblock >> tempID;
+                    inblock >> x;
+                    inblock >> y;
+                    dataSize -= sizeof(unsigned char);
+                    dataSize -= sizeof(short); dataSize -= sizeof(short);
+                    receivePosition(tempID,x,y);
+                }else if(mType == MessageType::PLAYER_CONNECTED)
+                {
+                    inblock >> tempID;
+                    playerList[tempID] = PlayerInfo(tempID, "");
+                    dataSize -= sizeof(unsigned char);
+                }else if(mType == MessageType::PLAYER_DISCONNECTED)
+                {
+                    inblock >> tempID;
+                    playerList.remove(tempID);
+                    dataSize -= sizeof(unsigned char);
+                }else if(mType == MessageType::NOTIFY_NAME)
+                {
+                    QString name;
+                    inblock >> tempID;
+                    inblock >> name;
+                    std::string tempstr = name.toStdString();
+                    strncpy( playerList[tempID].name, tempstr.data(), MAX_NAME_LENGTH );
+                    dataSize -= sizeof(unsigned char);
+                    dataSize -= (name.length()*sizeof(QChar)+4);
+                }else if(mType == MessageType::BOMB_ACTIVATION)
+                {
+                    qDebug() << "bomb activation";
+                    inblock >> x;
+                    inblock >> y;
+                    triggerBomb(x,y);
+                    dataSize -= sizeof(short); dataSize -= sizeof(short);
+                }else if(mType == MessageType::PLAYER_DIED)
+                {
+                    timer.stop();
+                }
+                else if(mType == MessageType::PLAYER_WON)
+                {
+                    inblock >> tempID;
+                    inblock >> winnerName;
+                    winnerID = tempID;
+                    dataSize -= sizeof(unsigned char);
+                    dataSize -= (winnerName.size()*sizeof(QChar)+4);
+                    gameOver(tempID);
+                }else if(mType == MessageType::GAME_BEGIN)
+                {
+                    startGame();
+                    qDebug() << "printing names!";
+                    for(auto it=playerList.begin();it!=playerList.end();it++)
+                        qDebug() << it->name;
+                    emit drawSignal();
+                }else if(mType == MessageType::TIMER_UPDATE)
+                {
+                    inblock >> startGameTimer;
+                    dataSize -= sizeof(short);
 
-                        //if the counter has just started then reset the game state
-                        if(startGameTimer == TIMER_LENGTH)
-                            resetGameState();
+                    //if the counter has just started then reset the game state
+                    if(startGameTimer == TIMER_LENGTH)
+                        resetGameState();
 
-                        emit drawSignal();
-                        break;
-                    case MessageType::PLAYER_ID_ASSIGNMENT:
-                        //qDebug() << "buffer count before assignment: " << buffer.count();
-                        inblock >> tempID;
-                        dataSize -= sizeof(unsigned char);
-                        clientID = tempID;
-                        udpSocket.bind(BASE_UDP_PORT+clientID);
-                        break;
-                    case MessageType::START_POSITION:
-                        inblock >> tempID;
-                        inblock >> x;
-                        inblock >> y;
-                        dataSize -= sizeof(unsigned char);
-                        dataSize -= sizeof(short); dataSize -= sizeof(short);
-                        receiveStartPosition(tempID, x, y);
-                        break;
-                    case MessageType::GAME_PARAMETERS:
-                        inblock >> gameParameters;
-                        dataSize -= gameParameters.sizeInBytes();
-                        break;
-                    case MessageType::BATTLE_ROYALE_WALL_UPDATE:
-                        inblock >> gameState.wallEncroachment;
-                        dataSize -= sizeof(short);
-                        updateBattleRoyaleModeState();
-                        break;
-                    case MessageType::POSITION_UPDATE:
-                        inblock >> tempID;
-                        inblock >> x;
-                        inblock >> y;
-                        dataSize -= sizeof(unsigned char);
-                        dataSize -= sizeof(short); dataSize -= sizeof(short);
-                        receivePosition(tempID,x,y);
-                        break;
+                    emit drawSignal();
+                }else if(mType == MessageType::PLAYER_ID_ASSIGNMENT)
+                {
+                    inblock >> tempID;
+                    dataSize -= sizeof(unsigned char);
+                    clientID = tempID;
+                    udpSocket.bind(BASE_UDP_PORT+clientID);
+                }else if(mType == MessageType::START_POSITION)
+                {
+                    inblock >> tempID;
+                    inblock >> x;
+                    inblock >> y;
+                    dataSize -= sizeof(unsigned char);
+                    dataSize -= sizeof(short); dataSize -= sizeof(short);
+                    receiveStartPosition(tempID, x, y);
+                }else if(mType == MessageType::GAME_PARAMETERS)
+                {
+                    inblock >> gameParameters;
+                    dataSize -= gameParameters.sizeInBytes();
+                }else if(mType == MessageType::BATTLE_ROYALE_WALL_UPDATE)
+                {
+                    inblock >> gameState.wallEncroachment;
+                    dataSize -= sizeof(short);
+                    updateBattleRoyaleModeState();
                 }
                 qDebug() << "dataSize after switch: " << dataSize;
-                //qDebug() << "after switch!...bytes available: " << tcpSocket.bytesAvailable();
             }
 
         }
@@ -285,7 +301,7 @@ void ClientPlayer::sendName(std::string name)
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_0);
 
-    out << (unsigned char)MessageType::NOTIFY_SERVER_OF_PLAYER_NAME;
+    out << (unsigned char)MessageType::NOTIFY_NAME;
     out << QString::fromStdString(name);
 
     tcpSocket.write(block);
