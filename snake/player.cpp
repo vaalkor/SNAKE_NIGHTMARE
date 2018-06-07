@@ -19,16 +19,16 @@ void Player::triggerBomb(short x, short y)
     if(maxX >= gameParameters.width)  maxX = gameParameters.width  -1;
     if(maxY >= gameParameters.height) maxY = gameParameters.height -1;
 
-    for(unsigned int y=minY; y<=maxY; y++)
-        for(unsigned int x=minX; x<= maxX; x++)
+    for(int y=minY; y<=maxY; y++)
+        for(int x=minX; x<= maxX; x++)
             tailArray[x][y].id = 0;
 }
 
-void Player::updateBattleRoyaleMode()
+void Player::updateBattleRoyaleModeState()
 {
-    for(unsigned int y=0; y<gameParameters.height;y++)
+    for(int y=0; y<gameParameters.height;y++)
     {
-        for(unsigned int x=0; x<gameParameters.width;x++)
+        for(int x=0; x<gameParameters.width;x++)
         {
             if(    x<gameState.wallEncroachment || x >= (gameParameters.width-gameState.wallEncroachment)
                 || y<gameState.wallEncroachment || y >= (gameParameters.height-gameState.wallEncroachment) )

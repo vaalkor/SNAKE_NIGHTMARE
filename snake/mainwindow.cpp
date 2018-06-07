@@ -212,8 +212,8 @@ void MainWindow::drawSlot()
             if(maxX >= clientParameters.width)  maxX = clientParameters.width  -1;
             if(maxY >= clientParameters.height) maxY = clientParameters.height -1;
 
-            for(unsigned int y=minY; y<=maxY; y++)
-                for(unsigned int x=minX; x<= maxX; x++)
+            for(int y=minY; y<=maxY; y++)
+                for(int x=minX; x<= maxX; x++)
                     drawSquare(x,y, qRgb(255,0,0));
         }
     }

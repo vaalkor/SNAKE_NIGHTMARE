@@ -39,7 +39,7 @@ public:
 
     void triggerBomb(short x, short y);
     void resizeTailArray();
-    void updateBattleRoyaleMode();
+    void updateBattleRoyaleModeState();
 
     virtual void sendPosition(unsigned char ID, short x, short y) = 0;
     virtual void receivePosition(unsigned char ID, short x, short y) = 0;

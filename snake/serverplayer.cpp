@@ -25,6 +25,13 @@ ServerPlayer::ServerPlayer(QObject *parent) : Player(parent)
     serverWindow->show();
 }
 
+void ServerPlayer::sendTcpBlock(QByteArray &block)
+{
+    for(QTcpSocket *socket : clients)
+        if(playerList[idList[socket]].inCurrentGame)
+            socket->write(block);
+}
+
 void ServerPlayer::readyReadUdp()
 {
     while (clientUdp->hasPendingDatagrams()) {
@@ -49,8 +56,7 @@ void ServerPlayer::gameOver(unsigned char winnerID)
     out << (unsigned char)MessageType::PLAYER_WON;
     out << winnerID;
 
-    for(auto &socket : clients)
-        socket->write(block);
+    sendTcpBlock(block);
 
     gameState.gameInProgress = false;
     serverWindow->updateUI(playerList, gameState);
@@ -67,13 +73,13 @@ void ServerPlayer::sendPosition(unsigned char ID, short x, short y)
     stream << ID;
     stream << x;
     stream << y;
-    for(QTcpSocket *client : clients)
-    {
-        if(gameParameters.useTcp)
-            client->write(block);
-        else
+
+    if(gameParameters.useTcp)
+        sendTcpBlock(block);
+    else
+        for(QTcpSocket *client : clients)
             clientUdp->writeDatagram(block.data(), block.size(), client->peerAddress(), BASE_UDP_PORT+playerList[idList[client]].playerID);
-    }
+
 }
 
 void ServerPlayer::sendDeathSignal(unsigned char ID)
@@ -85,7 +91,7 @@ void ServerPlayer::sendDeathSignal(unsigned char ID)
         {
             block.clear();
             QDataStream out(&block, QIODevice::WriteOnly);
-             out << (unsigned char)MessageType::PLAYER_DIED;
+            out << (unsigned char)MessageType::PLAYER_DIED;
 
             socket->write(block);
             break;
@@ -115,15 +121,13 @@ void ServerPlayer::sendWinSignal(unsigned char ID)
     serverWindow->updateUI(playerList, gameState);
     QString winnerName = QString::fromStdString( playerList[ID].name);
 
-    for(QTcpSocket* socket : clients)
-    {
-        block.clear();
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out << (unsigned char)MessageType::PLAYER_WON;
-        out << ID;
-        out << winnerName;
-        socket->write(block);
-    }
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::PLAYER_WON;
+    out << ID;
+    out << winnerName;
+
+    sendTcpBlock(block);
 }
 
 void ServerPlayer::checkWinConditions()
@@ -222,24 +226,34 @@ void ServerPlayer::sendGameParameters()
     out << (unsigned char)MessageType::GAME_PARAMETERS;
     out << gameParameters;
 
-    for(auto &socket : clients)
-        socket->write(block);
+    sendTcpBlock(block);
+}
+
+//might need to add some more stuff here fookin ell
+void ServerPlayer::resetGameState()
+{
+    for(auto it=playerList.begin(); it!=playerList.end(); it++)
+    {
+        it->alive = true;
+        it->inCurrentGame = true;
+    }
+
+    memset(playerPositionGrid, 0, sizeof(playerPositionGrid)); //set the positions to blank.
+    memset(tailArray, 0, sizeof(tailArray));
+    startGameCounter = TIMER_LENGTH;
+    gameState.wallEncroachment = 0;
+    battleRoyaleTimer.stop();
+    timer.stop();
 }
 
 //this starts the counter, which runs for a few seconds. each tick of the clock calls iterateGameCounter
 void ServerPlayer::startGameCounterSlot()
 {
-    sendGameParameters();
-    resetGameState();
-
     qDebug() << "startgame button pressed... sending start game messages...";
     if(gameState.numPlayers > 0)
     {
-        //CALCULATE STARTING POSITIONS AND WRITE THEM TO THE APPROPRIATE CLIENTS
-        memset(playerPositionGrid, 0, sizeof(playerPositionGrid)); //set the positions to blank.
-
-        for(auto it=playerList.begin(); it!=playerList.end(); it++)
-            it->alive = true;
+        resetGameState();
+        sendGameParameters();
 
         gameState.gameInProgress = true;
 
@@ -248,14 +262,21 @@ void ServerPlayer::startGameCounterSlot()
     }
 }
 
-//might need to add some more stuff here fookin ell
-void ServerPlayer::resetGameState()
+void ServerPlayer::sendStartingPositions()
 {
-    memset(tailArray, 0, sizeof(tailArray));
-    startGameCounter = TIMER_LENGTH;
-    gameState.wallEncroachment = 0;
-    battleRoyaleTimer.stop();
-    timer.stop();
+    for(QTcpSocket *socket : clients)
+    {
+        short x,y;
+        calculateStartingPosition(x,y);
+        block.clear();
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << (unsigned char)MessageType::START_POSITION;
+        out << idList[socket]; //send the id of that player...
+        out << x << y;
+
+        //now write out that starting position to all clients in the game...
+        sendTcpBlock(block);
+    }
 }
 
 void ServerPlayer::iterateStartGameCounter()
@@ -267,8 +288,7 @@ void ServerPlayer::iterateStartGameCounter()
         QDataStream out(&block, QIODevice::WriteOnly);
         out << (unsigned char)MessageType::GAME_BEGIN;
 
-        for(auto &socket : clients)
-            socket->write(block);
+        sendTcpBlock(block);
 
         serverWindow->updateUI(playerList, gameState);
 
@@ -282,30 +302,10 @@ void ServerPlayer::iterateStartGameCounter()
         out << (unsigned char)MessageType::TIMER_UPDATE;
         out << startGameCounter;
 
-        for(auto &socket : clients)
-            socket->write(block);  //1+2+1+
+        sendTcpBlock(block);
 
         if(startGameCounter == TIMER_LENGTH) //putting this here is a shitty solution but it works for the moment. I think I'll add a signal to inform the client that it should clear it's tail array instead of relying on this very stateful solution
-        {
-            //this needs to be changed. the starting position of EACH PLAYER needs to be sent to every other player mate.. I'll do that tomorrow
-            //I also need to add some checks so that ONCE the game start button has been clicked, no more people can join.... cool mate cool.
-            //also need to add some stuff to make sure that all values and whatever are changed to the right things when games are ended, and stsrted.... whatever.
-            for(QTcpSocket *socket : clients)
-            {
-                short x,y;
-                calculateStartingPosition(x,y);
-                qDebug() << "starting position: " << x << "..." << y;
-                block.clear();
-                QDataStream out(&block, QIODevice::WriteOnly);
-                out << (unsigned char)MessageType::START_POSITION;
-                out << idList[socket]; //send the id of that player...
-                out << x << y;
-
-                //now write out that starting position to all clients in the game...
-                for(auto &clientSocket : clients)
-                    clientSocket->write(block);
-            }
-        }
+            sendStartingPositions();
 
         startGameCounter--;
     }
@@ -359,7 +359,7 @@ void ServerPlayer::readyReadTcp()
                     std::string tempStr = data.toStdString();
                     strncpy( playerList[ idList[clientSocket] ].name, tempStr.data(), MAX_NAME_LENGTH );
                     serverWindow->updateUI(playerList, gameState);
-                    dataSize=0;
+                    dataSize -= (data.length()*sizeof(QChar)+4); //this is EXTREMELY GYPO AS FUCK!!!
                 }else if(mType == MessageType::POSITION_UPDATE)
                 {
                     unsigned char ID;
@@ -382,10 +382,9 @@ void ServerPlayer::manageBattleRoyaleMode()
     out << (unsigned char)MessageType::BATTLE_ROYALE_WALL_UPDATE;
     out << gameState.wallEncroachment;
 
-    for(auto &socket : clients)
-        socket->write(block);
+    sendTcpBlock(block);
 
-    updateBattleRoyaleMode();
+    updateBattleRoyaleModeState();
 }
 
 //you could make this a bit more OO mate.... yeah...
@@ -397,8 +396,7 @@ void ServerPlayer::sendBombMessage(short x, short y)
     out << x;
     out << y;
 
-    for(auto &socket : clients)
-        socket->write(block);
+    sendTcpBlock(block);
 }
 
 void ServerPlayer::receivePosition(unsigned char ID, short x, short y)

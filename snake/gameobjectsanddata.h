@@ -22,7 +22,7 @@ public:
     unsigned char playerID;
     QRgb color;
     char name[MAX_NAME_LENGTH+1]; //+1 for the null terminator
-    bool alive = true;
+    bool alive = false;
     bool inCurrentGame = false;
 
     PlayerInfo();

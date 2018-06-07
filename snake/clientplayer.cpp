@@ -233,7 +233,7 @@ void ClientPlayer::readyReadTcp()
                     case MessageType::BATTLE_ROYALE_WALL_UPDATE:
                         inblock >> gameState.wallEncroachment;
                         dataSize -= sizeof(short);
-                        updateBattleRoyaleMode();
+                        updateBattleRoyaleModeState();
                         break;
                     case MessageType::POSITION_UPDATE:
                         inblock >> tempID;
