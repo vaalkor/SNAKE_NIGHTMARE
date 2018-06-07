@@ -31,7 +31,9 @@ GameParameters::sizeInBytes()
             +sizeof(PUBGmodeEnabled)
             +sizeof(PUBGWallIncrease)
             +sizeof(PUBGCircleTime)
-            +sizeof(useTcp);
+            +sizeof(useTcp)
+            +sizeof(cupMode)
+            +sizeof(winLimit);
 }
 
 QDataStream& operator<<(QDataStream &out, GameParameters &obj)
@@ -50,6 +52,8 @@ QDataStream& operator<<(QDataStream &out, GameParameters &obj)
     out << obj.PUBGWallIncrease;
     out << obj.PUBGCircleTime;
     out << obj.useTcp;
+    out << obj.cupMode;
+    out << obj.winLimit;
     return out;
 }
 
@@ -69,6 +73,8 @@ QDataStream& operator>>(QDataStream& in, GameParameters &obj)
     in >>  obj.PUBGWallIncrease;
     in >>  obj.PUBGCircleTime;
     in >>  obj.useTcp;
+    in >>  obj.cupMode;
+    in >>  obj.winLimit;
     return in;
 }
 

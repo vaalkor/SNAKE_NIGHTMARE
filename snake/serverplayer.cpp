@@ -124,6 +124,18 @@ void ServerPlayer::calculateStartingPosition(short &x, short &y)
 }
 void ServerPlayer::sendWinSignal(unsigned char ID)
 {
+    if(gameParameters.cupMode)
+    {
+        playerList[ID].score ++;
+        block.clear();
+        QDataStream out2(&block, QIODevice::WriteOnly);
+        out2 << (unsigned char)MessageType::SCORE_UPDATE;
+        out2 << ID;
+        out2 << playerList[ID].score;
+
+        sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
+    }
+
     battleRoyaleTimer.stop();
     gameState.gameInProgress = false;
     serverWindow->updateUI(playerList, gameState);

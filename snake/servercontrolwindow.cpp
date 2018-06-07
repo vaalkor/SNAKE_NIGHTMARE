@@ -84,7 +84,7 @@ void ServerControlWindow::on_enableRevengeModeCheckbox_clicked(bool checked)
 void ServerControlWindow::on_sprintLengthInputBox_textEdited(const QString &arg1)
 {
     float value = arg1.toFloat();
-    if(value == 0)
+    if(value <= 0)
         value = 1;
     value *= 1000;  //seconds->milliseconds
     gameParameters->sprintLength = value;
@@ -93,7 +93,7 @@ void ServerControlWindow::on_sprintLengthInputBox_textEdited(const QString &arg1
 void ServerControlWindow::on_sprintRechargeLengthInputBox_textEdited(const QString &arg1)
 {
     float value = arg1.toFloat();
-    if(value == 0)
+    if(value <= 0)
         value = 20;
     value *= 1000;  //seconds->milliseconds
     gameParameters->sprintRechargeLength = value;
@@ -102,7 +102,7 @@ void ServerControlWindow::on_sprintRechargeLengthInputBox_textEdited(const QStri
 void ServerControlWindow::on_bombRechargeLengthInputBox_textEdited(const QString &arg1)
 {
     float value = arg1.toFloat();
-    if(value == 0)
+    if(value <= 0)
         value = 10;
     value *= 1000;  //seconds->milliseconds
     gameParameters->bombChargeTime = value;
@@ -111,7 +111,7 @@ void ServerControlWindow::on_bombRechargeLengthInputBox_textEdited(const QString
 void ServerControlWindow::on_PUBGCircleTimeInputBox_textEdited(const QString &arg1)
 {
     float value = arg1.toFloat();
-    if(value == 0)
+    if(value <= 0)
         value = 2.5;
     value*=1000;    //seconds->milliseconds
     gameParameters->PUBGCircleTime = value;
@@ -120,7 +120,7 @@ void ServerControlWindow::on_PUBGCircleTimeInputBox_textEdited(const QString &ar
 void ServerControlWindow::on_PUBGWallIncreaseInputBox_textEdited(const QString &arg1)
 {
     float value = arg1.toInt();
-    if(value == 0)
+    if(value <= 0)
         value = 2;
     gameParameters->PUBGWallIncrease = value;
 }
@@ -128,4 +128,17 @@ void ServerControlWindow::on_PUBGWallIncreaseInputBox_textEdited(const QString &
 void ServerControlWindow::on_tcpRadioButton_toggled(bool checked)
 {
     gameParameters->useTcp = checked;
+}
+
+void ServerControlWindow::on_cupModeCheckbox_toggled(bool checked)
+{
+    gameParameters->cupMode = checked;
+}
+
+void ServerControlWindow::on_winLimitInputBox_textEdited(const QString &arg1)
+{
+    int value = arg1.toInt();
+    if(value <= 0)
+        value = 10;
+    gameParameters->winLimit = value;
 }

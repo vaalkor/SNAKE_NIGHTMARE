@@ -28,6 +28,12 @@ void ClientPlayer::handleKeyPress(QKeyEvent *event)
         keysPressed[Qt::Key_Shift] = true;
     if(event->key() == Qt::Key_Space)
         keysPressed[Qt::Key_Space] = true;
+    if(event->key() == Qt::Key_Tab)
+    {
+        keysPressed[Qt::Key_Tab] = true;
+        emit drawSignal();
+    }
+
 }
 void ClientPlayer::handleKeyReleased(QKeyEvent *event)
 {
@@ -43,6 +49,15 @@ void ClientPlayer::handleKeyReleased(QKeyEvent *event)
         keysPressed[Qt::Key_Shift] = false;
     if(event->key() == Qt::Key_Space)
         keysPressed[Qt::Key_Space] = false;
+    if(event->key() == Qt::Key_Tab)
+    {
+        keysPressed[Qt::Key_Tab] = false;
+        emit drawSignal();
+    }
+}
+void ClientPlayer::releaseAllKeys()
+{
+
 }
 
 void ClientPlayer::iterateGameState()
@@ -158,15 +173,11 @@ void ClientPlayer::readyReadTcp()
 
             while(dataSize)
             {
-                //qDebug() << "buffer count before enum read: " << buffer.count();
-
                 unsigned char mTypeChar;
                 inblock >> mTypeChar;
                 MessageType mType;
                 mType = static_cast<MessageType>(mTypeChar);
                 dataSize -= sizeof(unsigned char);
-
-                //qDebug() << "buffer count after enum read: " << buffer.count();
 
                 qDebug() << "message type: " << (unsigned int)mType;
 
@@ -182,13 +193,21 @@ void ClientPlayer::readyReadTcp()
                     dataSize -= sizeof(unsigned char);
                     dataSize -= sizeof(short); dataSize -= sizeof(short);
                     receivePosition(tempID,x,y);
+                }
+                else if(mType == MessageType::SCORE_UPDATE)
+                {
+                    inblock >> tempID;
+                    inblock >> playerList[tempID].score;
+                    dataSize -= sizeof(unsigned char); dataSize -= sizeof(int);
                 }else if(mType == MessageType::PLAYER_CONNECTED)
                 {
+                    gameState.numPlayers++;
                     inblock >> tempID;
                     playerList[tempID] = PlayerInfo(tempID, "");
                     dataSize -= sizeof(unsigned char);
                 }else if(mType == MessageType::PLAYER_DISCONNECTED)
                 {
+                    gameState.numPlayers--;
                     inblock >> tempID;
                     playerList.remove(tempID);
                     dataSize -= sizeof(unsigned char);

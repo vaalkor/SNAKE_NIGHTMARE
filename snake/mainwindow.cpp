@@ -89,12 +89,11 @@ bool MainWindow::event(QEvent *e)
     {
         if(e->type() == QEvent::WindowActivate)
         {
-            qDebug() << "mainwindow focused";
             clientPlayer->inFocus = true;
         }else if(e->type() == QEvent::WindowDeactivate)
         {
-            qDebug() << "mainwindow unfocused"; //THIS IS NOT WHAT WE WANT.. WE WANT SIGNALS AND SLOTS BUT THIS IS A TEMPORARY MEASURE MATE!
             clientPlayer->inFocus = false;
+            clientPlayer->releaseAllKeys();
         }
     }
     return true;
@@ -215,6 +214,21 @@ void MainWindow::drawSlot()
             for(int y=minY; y<=maxY; y++)
                 for(int x=minX; x<= maxX; x++)
                     drawSquare(x,y, qRgb(255,0,0));
+        }
+        if(clientPlayer->keysPressed[Qt::Key_Tab])
+        {
+            QPen pen( Qt::white );
+            painter->setPen(pen);
+            painter->setFont(QFont("Times", 15, QFont::Bold));
+            int count = 0;
+            for(auto it=clientPlayer->playerList.begin(); it!=clientPlayer->playerList.end();it++)
+            {
+                QString text;
+                text = QString::fromStdString(std::string(it->name)+": " + std::to_string(it->score));
+                //painter->drawText(clientParameters.width/2, (int)(0.15 + count*(0.7/(float)clientPlayer->gameState.numPlayers)), 30, text);
+                painter->drawText(image.width()*0.35, (int)((0.15 + count*(0.7/(float)clientPlayer->gameState.numPlayers))*image.height()), text);
+                count++;
+            }
         }
     }
 

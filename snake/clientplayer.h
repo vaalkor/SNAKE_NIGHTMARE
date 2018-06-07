@@ -50,6 +50,7 @@ public:
 
     void handleKeyPress(QKeyEvent *event);
     void handleKeyReleased(QKeyEvent *event);
+    void releaseAllKeys();
 
     void resetGameState();
     void sendName(std::string name);

@@ -52,6 +52,10 @@ private slots:
 
     void on_tcpRadioButton_toggled(bool checked);
 
+    void on_cupModeCheckbox_toggled(bool checked);
+
+    void on_winLimitInputBox_textEdited(const QString &arg1);
+
 private:
     Ui::ServerControlWindow *ui;
 };

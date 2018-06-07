@@ -63,6 +63,9 @@ public:
     int PUBGCircleTime = 2500;
     bool useTcp = false;
 
+    bool cupMode = true;
+    int winLimit = 10;
+
     int sizeInBytes();
 };
 
@@ -73,6 +76,7 @@ enum class MessageType : unsigned char
 {
     PLAYER_CONNECTED,
     PLAYER_DISCONNECTED,
+    SCORE_UPDATE,
     PLAYER_ID_ASSIGNMENT,
     NOTIFY_NAME,
     BATTLE_ROYALE_WALL_UPDATE,
