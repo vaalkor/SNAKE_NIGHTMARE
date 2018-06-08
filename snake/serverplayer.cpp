@@ -116,25 +116,46 @@ void ServerPlayer::calculateStartingPosition(short &x, short &y)
         {
             playerPositionGrid[tempX][tempY] = 1;
             qDebug() << "starting pos server: " << tempX << "/" << tempY;
-            x = (0.15 + (tempX/(float)4)*0.7) * gameParameters.width;
+            x = (0.3 + (tempX/(float)4)*0.7) * gameParameters.width;
             y = (0.15 + (tempY/(float)5)*0.7) * gameParameters.height;
             return;
         }
     }
 }
+
+void ServerPlayer::manageCupMode(unsigned char ID)
+{
+    playerList[ID].score ++;
+    block.clear();
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << (unsigned char)MessageType::SCORE_UPDATE;
+    out << ID;
+    out << playerList[ID].score;
+
+    sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
+
+    //if a player has reached the maximum score reset all of the scores and resend them to the clients mate...
+    for(auto it=playerList.begin(); it!=playerList.end();it++)
+        if(it->score == gameParameters.winLimit)
+        {
+            for(auto it2=playerList.begin(); it2!=playerList.end();it2++)
+            {
+                it2->score = 0;
+                block.clear();
+                QDataStream out(&block, QIODevice::WriteOnly);
+                out << (unsigned char)MessageType::SCORE_UPDATE;
+                out << it2->playerID;
+                out << it2->score;
+                sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
+            }
+            break;
+        }
+}
+
 void ServerPlayer::sendWinSignal(unsigned char ID)
 {
     if(gameParameters.cupMode)
-    {
-        playerList[ID].score ++;
-        block.clear();
-        QDataStream out2(&block, QIODevice::WriteOnly);
-        out2 << (unsigned char)MessageType::SCORE_UPDATE;
-        out2 << ID;
-        out2 << playerList[ID].score;
-
-        sendTcpBlock(ClientStatus::ALL_CLIENTS, block);
-    }
+        manageCupMode(ID);
 
     battleRoyaleTimer.stop();
     gameState.gameInProgress = false;
@@ -284,12 +305,14 @@ void ServerPlayer::resetGameState()
     {
         it->alive = true;
         it->inCurrentGame = true;
+        it->ready = false;
     }
 
     memset(playerPositionGrid, 0, sizeof(playerPositionGrid)); //set the positions to blank.
     memset(tailArray, 0, sizeof(tailArray));
     startGameCounter = TIMER_LENGTH;
     gameState.wallEncroachment = 0;
+    gameState.numReady = 0;
     battleRoyaleTimer.stop();
     timer.stop();
 }
@@ -430,8 +453,25 @@ void ServerPlayer::readyReadTcp()
                     dataSize -= sizeof(unsigned char);
                     dataSize -= sizeof(short);dataSize -= sizeof(short);
                 }
+                else if(mType == MessageType::PLAYER_READY)
+                {
+                    qDebug() << "player ready mate!!!!!! ID = " << playerList[ idList[clientSocket]].playerID;
+                    playerList[ idList[clientSocket]].ready = true;
+                    gameState.numReady++;
+                    checkPlayersReady();
+                }
             }
         }
+}
+
+void ServerPlayer::checkPlayersReady()
+{
+    qDebug() << "PLAYERS READY: " << gameState.numReady << "numplayers: " << gameState.numPlayers;
+    if(gameParameters.autoStartWhenPlayersReady)
+    {
+        if(gameState.numReady == gameState.numPlayers)
+            startGameCounterSlot();
+    }
 }
 
 void ServerPlayer::manageBattleRoyaleMode()

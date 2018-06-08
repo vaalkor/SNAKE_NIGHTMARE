@@ -33,6 +33,12 @@ void ClientPlayer::handleKeyPress(QKeyEvent *event)
         keysPressed[Qt::Key_Tab] = true;
         emit drawSignal();
     }
+    if(event->key() == Qt::Key_Return)
+    {
+        qDebug() << "alright mate!";
+        sendReadySignal();
+    }
+
 
 }
 void ClientPlayer::handleKeyReleased(QKeyEvent *event)
@@ -57,6 +63,21 @@ void ClientPlayer::handleKeyReleased(QKeyEvent *event)
 }
 void ClientPlayer::releaseAllKeys()
 {
+    for(auto it=keysPressed.begin();it!=keysPressed.end();it++)
+        *it = false;
+    emit drawSignal();
+}
+void ClientPlayer::sendReadySignal()
+{
+    if(!gameState.gameInProgress && !playerList[clientID].ready)
+    {
+        playerList[clientID].ready = true;
+
+        block.clear();
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << (unsigned char)MessageType::PLAYER_READY;
+        tcpSocket.write(block);
+    }
 
 }
 
@@ -198,6 +219,11 @@ void ClientPlayer::readyReadTcp()
                 {
                     inblock >> tempID;
                     inblock >> playerList[tempID].score;
+                    if(playerList[tempID].score == gameParameters.winLimit)
+                    {
+                        winnerID = tempID;
+                        printCupWinnerName = true;
+                    }
                     dataSize -= sizeof(unsigned char); dataSize -= sizeof(int);
                 }else if(mType == MessageType::PLAYER_CONNECTED)
                 {
@@ -233,6 +259,7 @@ void ClientPlayer::readyReadTcp()
                 }
                 else if(mType == MessageType::PLAYER_WON)
                 {
+                    gameState.gameInProgress = false;
                     inblock >> tempID;
                     inblock >> winnerName;
                     winnerID = tempID;
@@ -248,6 +275,7 @@ void ClientPlayer::readyReadTcp()
                     emit drawSignal();
                 }else if(mType == MessageType::TIMER_UPDATE)
                 {
+                    gameState.gameInProgress = true;
                     inblock >> startGameTimer;
                     dataSize -= sizeof(short);
 
@@ -291,10 +319,14 @@ void ClientPlayer::resetGameState()
     timer.stop();
     gameState.wallEncroachment = 0;
     printWinnerName = false;
+    printCupWinnerName = false;
     gameState.sprintMeter = gameParameters.sprintLength; //reset the sprint meter mate...
     gameState.bombCharge = 0;
     memset(tailArray,0, sizeof(tailArray));
     startGameTimerOnScreen = true;
+
+    for(auto it=playerList.begin(); it!=playerList.end();it++)
+        it->ready = false;
 }
 
 void ClientPlayer::startGame()

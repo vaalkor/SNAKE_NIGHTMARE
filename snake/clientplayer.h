@@ -31,6 +31,7 @@ public:
     bool drawBomb = false;
     QPoint bombPosition;
 
+    bool printCupWinnerName = false;
     bool printWinnerName = false;
     QString winnerName;
     short winnerID;
@@ -54,6 +55,7 @@ public:
 
     void resetGameState();
     void sendName(std::string name);
+    void sendReadySignal();
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;
 

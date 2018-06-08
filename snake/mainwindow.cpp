@@ -189,7 +189,17 @@ void MainWindow::drawSlot()
             painter->setPen(*bombBarPen);
             painter->drawRect(0.1*image.width(), 0.88*image.height(), 0.07*image.width()*bombProportion, 0.005*image.height());
         }
-        if(clientPlayer->printWinnerName)
+        if(clientPlayer->printCupWinnerName)
+        {
+            QPen pen( Qt::white );
+            painter->setPen(pen);
+            painter->setFont(QFont("Times", 15, QFont::Bold));
+            QString text;
+            text = QString::fromStdString(std::string(clientPlayer->playerList[clientPlayer->winnerID].name)+" wins the cup with " + std::to_string(clientParameters.winLimit) + " points!");
+            painter->drawText(image.width()*0.15, (int)((0.07 )*image.height()), text);
+            painter->drawText(image.width()*0.15, (int)((0.10 )*image.height()), "Better luck next time scrub.");
+        }
+        else if(clientPlayer->printWinnerName)
         {
             QPen pen( Qt::white );
             painter->setPen(pen);

@@ -33,7 +33,8 @@ GameParameters::sizeInBytes()
             +sizeof(PUBGCircleTime)
             +sizeof(useTcp)
             +sizeof(cupMode)
-            +sizeof(winLimit);
+            +sizeof(winLimit)
+            +sizeof(autoStartWhenPlayersReady);
 }
 
 QDataStream& operator<<(QDataStream &out, GameParameters &obj)
@@ -54,6 +55,7 @@ QDataStream& operator<<(QDataStream &out, GameParameters &obj)
     out << obj.useTcp;
     out << obj.cupMode;
     out << obj.winLimit;
+    out << obj.autoStartWhenPlayersReady;
     return out;
 }
 
@@ -75,6 +77,7 @@ QDataStream& operator>>(QDataStream& in, GameParameters &obj)
     in >>  obj.useTcp;
     in >>  obj.cupMode;
     in >>  obj.winLimit;
+    in >>  obj.autoStartWhenPlayersReady;
     return in;
 }
 

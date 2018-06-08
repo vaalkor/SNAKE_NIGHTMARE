@@ -142,3 +142,8 @@ void ServerControlWindow::on_winLimitInputBox_textEdited(const QString &arg1)
         value = 10;
     gameParameters->winLimit = value;
 }
+
+void ServerControlWindow::on_autoPlayWhenClientsReadyCheckbox_toggled(bool checked)
+{
+    gameParameters->autoStartWhenPlayersReady = checked;
+}

@@ -396,6 +396,22 @@
     <string>Win Limit</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="autoPlayWhenClientsReadyCheckbox">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>270</y>
+     <width>171</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Auto play when clients ready?</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

@@ -23,6 +23,7 @@ public:
     char name[MAX_NAME_LENGTH+1]; //+1 for the null terminator
     bool alive = false;
     bool inCurrentGame = false;
+    bool ready = false;
     int score = 0;
 
     PlayerInfo();
@@ -37,6 +38,7 @@ public:
     float sprintMeter = 1000; //set this to sprint length later on mate... yihyihyihm8
     float bombCharge = 0;
     short wallEncroachment = 0;
+    short numReady = 0;
 };
 
 class GameParameters
@@ -65,6 +67,7 @@ public:
 
     bool cupMode = true;
     int winLimit = 10;
+    bool autoStartWhenPlayersReady = true;
 
     int sizeInBytes();
 };
@@ -88,6 +91,7 @@ enum class MessageType : unsigned char
     TIMER_UPDATE,
     START_POSITION,
     GAME_PARAMETERS,
+    PLAYER_READY,
     COUNT //this is a cheeky way of accessing the number of enum entries in code.
 };
 

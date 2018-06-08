@@ -47,6 +47,8 @@ public:
     void sendBombMessage(short x, short y);
     void sendTcpBlock(ClientStatus clientStatus, QByteArray &block);
     unsigned char calculateNewPlayerID();
+    void manageCupMode(unsigned char ID);
+    void checkPlayersReady();
 
     void sendPosition(unsigned char ID, short x, short y) override;
     void receivePosition(unsigned char ID, short x, short y) override;
