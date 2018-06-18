@@ -56,6 +56,8 @@ private slots:
 
     void on_winLimitInputBox_textEdited(const QString &arg1);
 
+    void on_autoPlayWhenClientsReadyCheckbox_toggled(bool checked);
+
 private:
     Ui::ServerControlWindow *ui;
 };
